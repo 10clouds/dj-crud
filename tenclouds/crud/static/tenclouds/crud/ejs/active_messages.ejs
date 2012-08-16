@@ -1,0 +1,23 @@
+<% if (collection.length > 0) { %>
+    <div class="alert-message block-message warning">
+        <a href="#" class="close">x</a>
+        <p>
+            <% collection.each(function (msg) { %>
+                <ul>
+                    <li class="active-message-item" title="<%= msg.id %>">
+                        <strong>
+                            <% if (!msg.get('description') && !msg.get('completed')) { %>
+                                Waiting for task to start...
+                            <% } else { %>
+                                <%= msg.escape('description') %>
+                                <%= msg.escape('completed') %>%
+                            <% } %>
+                        </strong>
+                        &nbsp;
+                        <em><%= msg.escape('message') %></em>
+                    </li>
+                </ul>
+            <% }) %>
+        </p>
+    </div>
+<% } %>

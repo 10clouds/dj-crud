@@ -1,0 +1,21 @@
+<div class="modal-well">
+</div>
+
+<div class="modal <% if(view.options.type == 'image') {%>modal-image<%}%>">
+    <div class="modal-header">
+        <a class="close" href="#">x</a>
+        <h3>
+            <%= view.options.content.header %>
+        </h3>
+    </div>
+
+    <div class="modal-body">
+        <%= view.options.content.body %>
+    </div>
+
+    <div class="modal-footer">
+        <%= view.options.content.footer %>
+        <a class="btn confirm primary">Ok</a>
+        <a class="btn close">Abort</a>
+    </div>
+</div>

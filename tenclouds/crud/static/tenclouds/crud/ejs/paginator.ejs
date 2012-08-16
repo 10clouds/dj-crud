@@ -1,0 +1,64 @@
+<ul title="<%= collection.total %> objects">
+
+    <li class="crud-paginator-page-<%= collection.page - 1 %> <% if (!collection.hasPrev()){ %>disabled<% } %> prev"><a href="#">&larr; Previous</a></li>
+
+    <% if (collection.page > 2) { %>
+        <li class="crud-paginator-page-1">
+            <a href="#">1</a>
+        </li>
+        <% if (collection.page > 3) { %>
+            <li class"disabled">
+                <a href="#">...</a>
+            </li>
+        <% } %>
+    <% } %>
+
+    <% if (collection.page > 1) { %>
+        <li class="crud-paginator-page-<%= collection.page - 1 %>">
+            <a href="#"><%= collection.page - 1 %></a>
+        </li>
+    <% } %>
+
+
+	<li class="active">
+		<a href="#"><%= collection.page %></a>
+	</li>
+
+
+    <% if (collection.page < (collection.numPages())) { %>
+        <% if (collection.page < (collection.numPages() - 1)) { %>
+            <li class="crud-paginator-page-<%= collection.page + 1 %>">
+                <a href="#"><%= collection.page + 1 %></a>
+            </li>
+        <% } %>
+
+        <% if (collection.page < (collection.numPages() - 2)) { %>
+            <li class"disabled">
+                <a href="#">...</a>
+            </li>
+        <% } %>
+        <li class="crud-paginator-page-<%= collection.numPages() %>">
+            <a href="#"><%= collection.numPages() %></a>
+        </li>
+    <% } %>
+
+    <li class="crud-paginator-page-<%= collection.page + 1 %> next <% if (!collection.hasNext()) { %>disabled<% } %>"><a href="#">Next &rarr;</a></li>
+
+</ul>
+
+<% if (view.options.meta.perPage.length > 1) { %>
+    <ul class="crud-paginator-per-page paginator-per-page">
+        <li class="disabled"><a>Items per page</a></li>
+        <% $.each(view.options.meta.perPage, function (i, perPage) { %>
+            <li <% if (collection.perPage === perPage) { %>class="active"<% } %>>
+                <a href="#">
+                    <%= perPage %>
+                </a>
+            </li>
+        <% }) %>
+    </ul>
+<% } %>
+
+<ul class="paginator-per-page paginator-total">
+    <li class="disabled"><a>Total: <%= collection.total %></a></li>
+</ul>

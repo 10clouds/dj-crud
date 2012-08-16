@@ -1,0 +1,18 @@
+<h3><%= view.options.meta.data.title %></h3>
+
+<ul class="inputs-list">
+<% collection.each(function (m) { %>
+    <% if (m.get('counter') > 0) { %>
+        <li>
+            <label>
+                <input type="checkbox" value="<%= m.id %>" <% if (m.get('_selected')) { %>checked<% } %>>
+                <span>
+                    <%= m.escape('name') %>
+                    &mdash;
+                    <em><%= m.escape('counter') %></em>
+                </span>
+            </label>
+        </li>
+    <% } %>
+<% }) %>
+</ul>
