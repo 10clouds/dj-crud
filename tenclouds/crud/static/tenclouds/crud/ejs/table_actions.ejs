@@ -1,11 +1,15 @@
 <% if (view.options.meta.actions.length) { %>
-        <a class="dense action button <% if (view.actionsInProgress > 0) { %>processing<% } %> crud-dropdown-toggle" href="#">
-        Actions
-    </a>
-    <ul style="display:none;" class="crud-dropdown dense-menu">
+<div class="dense inline btn-group">
+    <button class="btn <% if (view.actionsInProgress > 0) { %>processing<% } %>">
+    Actions
+    </button>
+    <button class="btn dropdown-toggle" data-toggle="dropdown">
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
     <% for (var i=0; i<view.options.meta.actions.length; i++) { %>
-        <li class="crud-action ">
-            <%= view.options.meta.actions[i].name %>
+        <li class="crud-action">
+            <a href="#"><%= view.options.meta.actions[i].name %></a>
             <input type="hidden" value="<%= view.options.meta.actions[i].codename %>">
         </li>
     <% } %>

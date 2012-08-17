@@ -349,7 +349,7 @@ crud.view.ActionsMenuWidget = crud.view.DropdownMenuWidget.extend({
     },
 
     onAction: function (e) {
-        var actionName = $(e.target).find('input').val();
+        var actionName = $(e.target).parent().find('input').val();
 
         var action;
         for (var i=0; i<this.options.meta.actions.length; ++i) {
@@ -425,7 +425,7 @@ crud.view.SelectAllWidget = crud.view.Widget.extend({
 
     template: {
         render: function () {
-            return '<a class="dense button left"  href="#">All</a>'; }
+            return '<a class="dense btn left"  href="#">All</a>'; }
     },
 
     events: {
@@ -451,7 +451,7 @@ crud.view.SelectNoneWidget = crud.view.Widget.extend({
 
     template: {
         render: function () {
-            return '<a class="dense button right" href="#">None</a>';
+            return '<a class="dense btn right" href="#">None</a>';
         }
     },
 
@@ -492,7 +492,7 @@ crud.view.LinkWidget = crud.view.Widget.extend({
 
         _.bindAll(this, 'onLinkClick');
 
-        var templateStr = '<a class="dense button ' + this.options.extraClass + '" href="' + (this.options.href || 'javascript://') + '">' + this.options.text + '</a>';
+        var templateStr = '<a class="dense btn ' + this.options.extraClass + '" href="' + (this.options.href || 'javascript://') + '">' + this.options.text + '</a>';
         this.template = {
             render: function () { return templateStr; }
         }

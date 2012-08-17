@@ -465,7 +465,7 @@ crud.view.LabelList = crud.view.View.extend({
 
 crud.view.FullTextSearchItem = crud.view.View.extend({
 
-    tagName: 'div',
+    tagName: 'li',
 
     template: crud.template('/statics/tenclouds/crud/ejs/search_item.ejs'),
 
@@ -665,7 +665,7 @@ crud.view.FilterGroup = crud.view.View.extend({
 
     filterWidgets: crud.view.standardFilterWidgets,
 
-    appendTo: 'ul:first',
+    appendTo: 'ul',
 
     bindEvents: {},
 
