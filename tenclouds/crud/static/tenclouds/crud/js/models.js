@@ -6,7 +6,7 @@ crud.util.getValue = function(val) {
 
 
 crud.modelMeta = function (baseUrl, callback) {
-    $.getJSON(crud.util.getValue(baseUrl) + '_info/', {}, function (resp) {
+    $.getJSON(crud.util.getValue(baseUrl) + 'schema/', {}, function (resp) {
         callback(resp);
     });
 };
