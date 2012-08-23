@@ -7,23 +7,13 @@ from tenclouds.crud.paginator import Paginator
 
 class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
     def __new__(cls, name, bases, attrs):
-        meta = attrs.get('Meta')
-
-        if meta and hasattr(meta, 'queryset'):
-            setattr(meta, 'object_class', meta.queryset.model)
-
-        new_class = super(resources.ModelDeclarativeMetaclass, cls).__new__(cls, name, bases, attrs)
-
-        # Define the fields
-        new_class.base_fields = new_class.get_fields()
-        new_class.visible_fields = OrderedDict([(x, y) for x, y in new_class.base_fields.items()
-                                         if y.visible])
-
-        if getattr(new_class._meta, 'include_absolute_url', True):
-            if not 'absolute_url' in new_class.base_fields:
-                new_class.base_fields['absolute_url'] = fields.CharField(attribute='get_absolute_url', readonly=True)
-        elif 'absolute_url' in new_class.base_fields and not 'absolute_url' in attrs:
-            del(new_class.base_fields['absolute_url'])
+        """
+        Get the class from super and apply the schema definitons to all
+        existing fields
+        """
+        new_class = super(ModelDeclarativeMetaclass, cls).__new__(cls, name,
+                                                                  bases, attrs)
+        new_class.apply_schema_fields()
 
         return new_class
 
@@ -82,87 +72,34 @@ class ModelResource(resources.ModelResource):
 
         Used by the ``schema/`` endpoint to describe what will be available.
         """
-        fields_order = self.visible_fields.keys()
-        fields_title = {}
-        fields_url = {}
-        fields_sortable = []
-        for name, field in self.visible_fields.items():
-            fields_title[name] = field.title
-            if hasattr(field, 'url'):
-                fields_url[name] = field.url
-            if field.sortable:
-                fields_sortable.append(name)
 
         return {
-            'fieldsOrder': fields_order,
-            'fieldsTitle': fields_title,
-            'fieldsURL': fields_url,
-            'fieldsSortable': fields_sortable,
+            'fieldsOrder': self.ordering,
+            'fieldsTitle': self.fields_title,
+            'fieldsURL': self.fields_url,
+            'fieldsSortable': self.fields_sortable,
             'default_format': self._meta.default_format,
             'filterGroups': self._meta.filter_groups(None),
             'perPage': self._meta.per_page,
             'actions': [],  # TODO: Action handler
-            'fieldsURL': fields_url,
+            'fieldsURL': self.fields_url,
             'data': {},
         }
 
     @classmethod
-    def get_fields(cls):
-        """
-        Build the fields dict basing on model fields and additional
-        schema params.
-        """
-        schema = getattr(cls._meta, 'schema', ())
-        fields = OrderedDict([(x.field_name, x) for x in schema])
+    def apply_schema_fields(cls):
+        """Apply CRUD schema params to each field set for this resource"""
+        schema = getattr(cls._meta, 'schema', None)
+        if not schema:
+            return
 
-        final_fields = OrderedDict({})
-
-        if not cls._meta.object_class:
-            return final_fields
-
-        for name, field_schema in fields.items():
-            # Get the model field
-            f = cls._meta.object_class._meta.get_field(name)
-
-            # If field is not present in explicit field listing, skip
-            if fields and f.name not in fields.keys():
-                continue
-
-            if cls.should_skip_field(f):
-                continue
-
-            api_field_class = cls.api_field_from_django_field(f)
-
-            kwargs = {
-                'attribute': f.name,
-                'help_text': f.help_text,
-            }
-
-            if f.null is True:
-                kwargs['null'] = True
-
-            kwargs['unique'] = f.unique
-
-            if not f.null and f.blank is True:
-                kwargs['default'] = ''
-
-            if f.get_internal_type() == 'TextField':
-                kwargs['default'] = ''
-
-            if f.has_default():
-                kwargs['default'] = f.default
-
-            final_fields[f.name] = api_field_class(**kwargs)
-            final_fields[f.name].instance_name = f.name
-
-            # Append the label, it's neede for display reasons
-            final_fields[f.name].title = field_schema.title or f.label
-            final_fields[f.name].visible = field_schema.visible
-            final_fields[f.name].sortable = field_schema.sortable
-            if field_schema.url:
-                final_fields[f.name].url = field_schema.url
-
-        return final_fields
+        # Apply the ordering
+        cls.ordering = [x.attr_name for x in schema]
+        cls.fields = [x.attr_name for x in schema if x.visible]
+        cls.fields_url = dict([(x.attr_name, x.url) for x in schema
+                               if hasattr(x, 'url') and x.url])
+        cls.fields_title = dict([(x.attr_name, x.title) for x in schema])
+        cls.fields_sortable = [x.attr_name for x in schema if x.sortable]
 
 
 class Field(object):
@@ -172,7 +109,7 @@ class Field(object):
     construct appropriate frontend constructs.
     """
 
-    def __init__(self, field_name, title=None, visible=True, sortable=False,
+    def __init__(self, attr_name, title=None, visible=True, sortable=False,
                  url=None):
         """
         :param field_name: field name
@@ -181,17 +118,17 @@ class Field(object):
         :param sortable: whether the field should be sortable
         :param url: TODO PLS
         """
-        self.field_name = field_name
+        self.attr_name = attr_name
         if title is None:
-            title = field_name.replace('_', ' ').capitalize()
+            title = attr_name.replace('_', ' ').capitalize()
         self.title = title
         self.visible = visible
         self.url = url
         self.sortable = sortable
 
     def __str__(self):
-        return ("Field: (field_name='%s', title='%s', sortable=%s, visible=%s,"
-                " url='%s')" % (self.field_name, self.title, self.sortable,
+        return ("Field: (attr_name='%s', title='%s', sortable=%s, visible=%s,"
+                " url='%s')" % (self.attr_name, self.title, self.sortable,
                                 self.visible, self.url))
 
     def __repr__(self):
