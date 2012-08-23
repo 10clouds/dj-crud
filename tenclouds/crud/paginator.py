@@ -46,7 +46,7 @@ class Paginator(paginator.Paginator):
         """
 
         if self.per_page is not None:
-            req_per_page = int(self.request_data.get('per_page'), 0)
+            req_per_page = int(self.request_data.get('per_page', 0))
             if req_per_page in self.per_page:
                 per_page = self.request_data['per_page']
             elif hasattr(self.per_page, '__iter__'):

@@ -74,10 +74,10 @@ class ModelResource(resources.ModelResource):
         """
 
         return {
-            'fieldsOrder': self.ordering,
+            'fieldsOrder': self._meta.fields,
             'fieldsTitle': self.fields_title,
             'fieldsURL': self.fields_url,
-            'fieldsSortable': self.fields_sortable,
+            'fieldsSortable': self._meta.ordering,
             'default_format': self._meta.default_format,
             'filterGroups': self._meta.filter_groups(None),
             'perPage': self._meta.per_page,
@@ -93,13 +93,30 @@ class ModelResource(resources.ModelResource):
         if not schema:
             return
 
-        # Apply the ordering
-        cls.ordering = [x.attr_name for x in schema]
-        cls.fields = [x.attr_name for x in schema if x.visible]
+        # Set the list of fields to return, this also defines the column order
+        cls._meta.fields = [x.attr_name for x in schema if x.visible]
+
+        # Set the fields that should have an url
         cls.fields_url = dict([(x.attr_name, x.url) for x in schema
                                if hasattr(x, 'url') and x.url])
+
+        # And the field titles
         cls.fields_title = dict([(x.attr_name, x.title) for x in schema])
-        cls.fields_sortable = [x.attr_name for x in schema if x.sortable]
+
+        # And define which ones should be sortable
+        cls._meta.ordering = [x.attr_name for x in schema if x.sortable]
+
+    def apply_sorting(self, obj_list, options=None):
+        """
+        Apply the sorting. The 'sort' parameter should be handled
+        because of backward comaptibilty with the piston implementation of
+        CRUD
+        """
+
+        if options and 'sort' in options:
+            options = options.copy()
+            options.update({'order_by': options['sort']})
+        return super(ModelResource, self).apply_sorting(obj_list, options)
 
 
 class Field(object):
