@@ -1,8 +1,23 @@
-from collections import OrderedDict
-from tastypie import fields
+from tastypie.authorization import Authorization
+from tastypie.exceptions import ImmediateHttpResponse
+from tastypie import http
 from tastypie import resources
+from tastypie.utils import trailing_slash
+
+from django.conf.urls.defaults import url
+from django.http import QueryDict
 
 from tenclouds.crud.paginator import Paginator
+
+
+class Actions(object):
+    def __init__(self):
+        self.public = []
+        self.secret = []
+        self.mapping = {}
+
+    def codename_to_callback(self, codename):
+        return self.mapping[codename]
 
 
 class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
@@ -17,6 +32,28 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
 
         return new_class
 
+    def __init__(cls, name, bases, dt):
+        # Create the list of actions
+        actions = Actions()
+        for attr_name in dir(cls):
+            attr = getattr(cls, attr_name)
+            if not hasattr(attr, 'action_handler'):
+                continue
+            action_info = {
+                'codename': attr.action_handler.codename,
+                'name': attr.action_handler.name,
+            }
+            if attr.action_handler.input_form:
+                action_info['form'] = str(attr.action_handler.input_form().as_p())
+            if attr.action_handler.public:
+                actions.public.append(action_info)
+            else:
+                actions.secret.append(action_info)
+            actions.mapping[attr.action_handler.codename] = attr_name
+        cls.actions = actions
+
+        super(ModelDeclarativeMetaclass, cls).__init__(name, bases, dt)
+
 
 class ModelResource(resources.ModelResource):
     """
@@ -30,12 +67,13 @@ class ModelResource(resources.ModelResource):
     the necessary logic for the frontend that wasn't present in tastypie's
     implementation.
 
-    # TODO: filters, groups and actions
+    # TODO: filters, groups
     """
     __metaclass__ = ModelDeclarativeMetaclass
 
     def __init__(self, api_name=None):
         self._meta.paginator_class = Paginator
+        self._meta.authorization = Authorization()  # Don't block any actions
         self._meta.filter_groups = lambda x: None  # TODO
         self._meta.schema = ()
         super(ModelResource, self).__init__(api_name)
@@ -65,6 +103,57 @@ class ModelResource(resources.ModelResource):
         to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
         return self.create_response(request, to_be_serialized)
 
+    def dispatch_actions(self, request, **kwargs):
+        """
+        The custom actions dispatcher.
+
+        Get the POST request, deserialize it, check wether the methods
+        are allowed and return the action result.
+        """
+        deserialized = self._meta.serializer.deserialize(request.raw_post_data,
+                                                         format='application/json')
+        action_name = deserialized.get("action", None)
+        if not action_name or not self.actions.mapping.get(action_name, None):
+            raise ImmediateHttpResponse(response=http.HttpNotImplemented())
+
+        # Get only the data that are needed for further processing
+        new_post = QueryDict("")
+        new_post = new_post.copy()
+        new_post.update(deserialized.get("query", {}))
+        request.POST = new_post
+
+        # Get the request method out of method name and convert the request
+        # This ensures all tastypie mechanisms will work properly
+        request_method = action_name.split("_")[:-1]
+        if request.method in ['get', 'put', 'delete', 'patch']:
+            request = resources.convert_post_to_VERB(request, request_method.upper())
+
+        # Check wether the desired method is allowed here
+        self.method_check(request, allowed=self._meta.allowed_methods)
+
+        # Get the action method
+        action = getattr(self, action_name, None)
+        if action is None:
+            raise ImmediateHttpResponse(response=http.HttpNotImplemented())
+
+        # Check all needed permissions
+        self.is_authenticated(request)
+        self.is_authorized(request)
+        self.throttle_check(request)
+
+        # At last return the method result
+        return action(request, **kwargs)
+
+    def override_urls(self):
+        """
+        Append the actions handler method.
+        """
+        return [
+            url(r"^(?P<resource_name>%s)/_actions%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_actions'),
+                name="api_dispatch_actions"),
+        ]
+
     def build_schema(self):
         """
         Returns a dictionary of all the fields on the resource and some
@@ -81,7 +170,7 @@ class ModelResource(resources.ModelResource):
             'default_format': self._meta.default_format,
             'filterGroups': self._meta.filter_groups(None),
             'perPage': self._meta.per_page,
-            'actions': [],  # TODO: Action handler
+            'actions': self.actions.public,
             'fieldsURL': self.fields_url,
             'data': {},
         }
@@ -105,18 +194,6 @@ class ModelResource(resources.ModelResource):
 
         # And define which ones should be sortable
         cls._meta.ordering = [x.attr_name for x in schema if x.sortable]
-
-    def apply_sorting(self, obj_list, options=None):
-        """
-        Apply the sorting. The 'sort' parameter should be handled
-        because of backward comaptibilty with the piston implementation of
-        CRUD
-        """
-
-        if options and 'sort' in options:
-            options = options.copy()
-            options.update({'order_by': options['sort']})
-        return super(ModelResource, self).apply_sorting(obj_list, options)
 
 
 class Field(object):

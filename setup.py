@@ -15,7 +15,6 @@ setup(
     url='https://github.com/10clouds/dj-crud',
     download_url='https://github.com/10clouds/dj-crud/tarball/master',
     install_requires=[
-        'django-piston==0.2.3',
         'django-tastypie'
     ],
     classifiers=[

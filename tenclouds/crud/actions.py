@@ -1,12 +1,9 @@
-import json
 import functools
+import json
 
 from django.http import HttpResponse
 
-from piston.utils import rc
-
-# Trying this out with FileWrapper
-#from tenclouds.django.fileresponse import FileResponse
+from tenclouds.crud.http import HttpDone
 
 
 class ActionResponse(object):
@@ -16,7 +13,7 @@ class ActionResponse(object):
 
 class ActionDone(ActionResponse):
     def to_response(self):
-        return rc.ALL_OK
+        return HttpDone()
 
 
 class ActionFileResponse(ActionResponse):
@@ -43,7 +40,7 @@ class ProcessingOffline(ActionResponse):
         # currently only first key return is supported
         if self.status_keys:
             return {'statuskey': self.status_keys[0]}
-        return rc.ALL_OK
+        return HttpDone()
 
 
 class Redirect(ActionResponse):
@@ -54,7 +51,7 @@ class Redirect(ActionResponse):
         # currently only first key return is supported
         if self.url:
             return {'redirect_url': self.url}
-        return rc.ALL_OK
+        return HttpDone()
 
 
 class InvalidFormData(ActionResponse):
@@ -64,7 +61,7 @@ class InvalidFormData(ActionResponse):
     def to_response(self):
         html = unicode(self.form.as_p())
         return HttpResponse(json.dumps(html), status=400,
-                mimetype='application/json')
+                            mimetype='application/json')
 
 
 class ActionHandler(object):

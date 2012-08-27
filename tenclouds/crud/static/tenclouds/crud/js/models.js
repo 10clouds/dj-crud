@@ -216,7 +216,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
 
     selectedQuery: function () {
         var query = {
-            id: [],
+            id__in: [],
             filter: {}
         };
 
@@ -225,7 +225,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         if (!this.allSelected) {
             this.each(function (m) {
                 if (m.get('_selected')) {
-                    query.id.push(m.id);
+                    query.id__in.push(m.id);
                 }
             });
         }
@@ -247,7 +247,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
     url: function () {
         var params = this.paginate ? {page: this.page, per_page: this.perPage} : {};
         if (this.querySort) {
-            params.sort = this.querySort;
+            params.order_by = this.querySort;
         }
         params = $.extend(params, this.queryFilter);
 
@@ -290,7 +290,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
     // Given action need to be provided by collection handler
     runAction: function (actionName, options, query) {
         var that = this;
-        var query = query || this.selectedQuery();
+        query = query || this.selectedQuery();
         var o = options || {};
         // options.data should not overwrite our data
         var options_data = options.data || {};
@@ -301,12 +301,15 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         // that everybody would know about it.
         var success = o.success;
         o.success = function (resp) {
-            if (resp.statuskey) {
-                crud.event.Task.trigger('new', resp.statuskey, resp);
-            }
+            if (resp && resp.length > 0) {
 
-            if (resp.redirect_url){
-                window.location = resp.redirect_url;
+                if (resp.statuskey) {
+                    crud.event.Task.trigger('new', resp.statuskey, resp);
+                }
+
+                if (resp.redirect_url){
+                    window.location = resp.redirect_url;
+                }
             }
 
             if (success) {
@@ -314,7 +317,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
             }
         };
 
-        var o = _.extend({
+        o = _.extend({
             url: this.url().split('?')[0] + '_actions/',
             data: JSON.stringify({
                 action: actionName,
@@ -434,12 +437,12 @@ crud.collection.Messages = crud.collection.Collection.extend({
                         m.fetch({success: success, error: error});
                     }, that.checkInterval);
                 }
-            }
+            };
             var error = function (m, resp) {
                 setTimeout(function() {
                     m.fetch({success: success, error: error});
                 }, 2000);
-            }
+            };
 
             m.fetch({success: success, error: error});
         });
