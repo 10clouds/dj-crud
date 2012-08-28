@@ -169,8 +169,42 @@ class ModelResource(resources.ModelResource):
             'fieldsURL': fields_url,
             'fieldsSortable': self._meta.ordering,
             'default_format': self._meta.default_format,
-            'filterGroups': self._meta.filter_groups(None),
+            'filterGroups': self.filter_groups(None),
             'perPage': self._meta.per_page,
             'actions': self.actions.public,
             'data': {},
         }
+
+    @classmethod
+    def filter_groups(cls, request):
+        """Return list of filter groups. By default return structure build by
+        the handler metaclass.
+        """
+        filters = []
+        for group in cls._meta.filters:
+            filters.append({
+                'title': group.name,
+                'filters': group.filter_fields_raw(request),
+            })
+        return filters
+
+    def apply_filters(self, request, applicable_filters):
+        query = super(ModelResource, self).apply_filters(request, applicable_filters)
+        return self.result_apply_filters(request, query, request.GET)
+
+    def result_apply_filters(self, request, query, filters):
+        """For given ``query`` object, apply any number of filters and return
+        new query object.
+        """
+        # apply any filter from "filter_groups" to given query
+        if isinstance(filters, dict):
+            groupfilter = filters.get('filters', None)
+            groupfilters = (groupfilter,) if groupfilter else ()
+        else:
+            groupfilters = filters.getlist('filters')
+
+        if not filters:
+            return query
+        for group in self._meta.filters:
+            query = group.apply_filters(request, query, groupfilters)
+        return query
