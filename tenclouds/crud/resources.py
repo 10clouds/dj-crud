@@ -21,15 +21,11 @@ class Actions(object):
 
 
 class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
-    def __new__(cls, name, bases, attrs):
-        """
-        Get the class from super and apply the schema definitons to all
-        existing fields
-        """
-        new_class = super(ModelDeclarativeMetaclass, cls).__new__(cls, name,
-                                                                  bases, attrs)
-        new_class.apply_schema_fields()
 
+    def __new__(cls, name, bases, attrs):
+        new_class = super(ModelDeclarativeMetaclass, cls).__new__(cls, name, bases, attrs)
+        # Don't return the resource_uri in fields order by default.
+        new_class.base_fields['resource_uri'].visible = False
         return new_class
 
     def __init__(cls, name, bases, dt):
@@ -75,7 +71,6 @@ class ModelResource(resources.ModelResource):
         self._meta.paginator_class = Paginator
         self._meta.authorization = Authorization()  # Don't block any actions
         self._meta.filter_groups = lambda x: None  # TODO
-        self._meta.schema = ()
         super(ModelResource, self).__init__(api_name)
 
     def get_list(self, request, **kwargs):
@@ -162,68 +157,20 @@ class ModelResource(resources.ModelResource):
         Used by the ``schema/`` endpoint to describe what will be available.
         """
 
+        fields_order = self._meta.fields or self.fields.keys()
+
+        fields_title = dict([(name, field.title or name.capitalize())
+                             for name, field in self.fields.items()])
+        fields_url = dict([(name, field.url) for name, field in self.fields.items() if field.url])
+
         return {
-            'fieldsOrder': self._meta.fields,
-            'fieldsTitle': self.fields_title,
-            'fieldsURL': self.fields_url,
+            'fieldsOrder': fields_order,
+            'fieldsTitle': fields_title,
+            'fieldsURL': fields_url,
             'fieldsSortable': self._meta.ordering,
             'default_format': self._meta.default_format,
             'filterGroups': self._meta.filter_groups(None),
             'perPage': self._meta.per_page,
             'actions': self.actions.public,
-            'fieldsURL': self.fields_url,
             'data': {},
         }
-
-    @classmethod
-    def apply_schema_fields(cls):
-        """Apply CRUD schema params to each field set for this resource"""
-        schema = getattr(cls._meta, 'schema', None)
-        if not schema:
-            return
-
-        # Set the list of fields to return, this also defines the column order
-        cls._meta.fields = [x.attr_name for x in schema if x.visible]
-
-        # Set the fields that should have an url
-        cls.fields_url = dict([(x.attr_name, x.url) for x in schema
-                               if hasattr(x, 'url') and x.url])
-
-        # And the field titles
-        cls.fields_title = dict([(x.attr_name, x.title) for x in schema])
-
-        # And define which ones should be sortable
-        cls._meta.ordering = [x.attr_name for x in schema if x.sortable]
-
-
-class Field(object):
-    """A field for JSON schema of objects retured by handlers.
-
-    Field attributes are passed to the frontend by "info" handlers, to
-    construct appropriate frontend constructs.
-    """
-
-    def __init__(self, attr_name, title=None, visible=True, sortable=False,
-                 url=None):
-        """
-        :param field_name: field name
-        :param title: title displayed by frontend
-        :param visible: whether the field should be visible to the user
-        :param sortable: whether the field should be sortable
-        :param url: TODO PLS
-        """
-        self.attr_name = attr_name
-        if title is None:
-            title = attr_name.replace('_', ' ').capitalize()
-        self.title = title
-        self.visible = visible
-        self.url = url
-        self.sortable = sortable
-
-    def __str__(self):
-        return ("Field: (attr_name='%s', title='%s', sortable=%s, visible=%s,"
-                " url='%s')" % (self.attr_name, self.title, self.sortable,
-                                self.visible, self.url))
-
-    def __repr__(self):
-        return str(self)
