@@ -26,6 +26,12 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
         new_class = super(ModelDeclarativeMetaclass, cls).__new__(cls, name, bases, attrs)
         # Don't return the resource_uri in fields order by default.
         new_class.base_fields['resource_uri'].visible = False
+        if not hasattr(new_class._meta, 'filters'):
+            new_class._meta.filters = ()
+        if not hasattr(new_class._meta, 'static_data'):
+            new_class._meta.static_data = {}
+        if not hasattr(new_class._meta, 'per_page'):
+            new_class._meta.per_page = None
         return new_class
 
     def __init__(cls, name, bases, dt):
@@ -62,15 +68,12 @@ class ModelResource(resources.ModelResource):
     For this need we have our own Paginator class that implements all
     the necessary logic for the frontend that wasn't present in tastypie's
     implementation.
-
-    # TODO: filters, groups
     """
     __metaclass__ = ModelDeclarativeMetaclass
 
     def __init__(self, api_name=None):
         self._meta.paginator_class = Paginator
         self._meta.authorization = Authorization()  # Don't block any actions
-        self._meta.filter_groups = lambda x: None  # TODO
         super(ModelResource, self).__init__(api_name)
 
     def get_list(self, request, **kwargs):
@@ -172,7 +175,7 @@ class ModelResource(resources.ModelResource):
             'filterGroups': self.filter_groups(None),
             'perPage': self._meta.per_page,
             'actions': self.actions.public,
-            'data': {},
+            'data': self._meta.static_data,
         }
 
     @classmethod

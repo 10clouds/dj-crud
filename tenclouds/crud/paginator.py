@@ -45,16 +45,15 @@ class Paginator(paginator.Paginator):
         Default is 20 per page.
         """
 
+        per_page = getattr(settings, 'API_LIMIT_PER_PAGE', 20)
+
         if self.per_page is not None:
+            per_page = self.per_page
             req_per_page = int(self.request_data.get('per_page', 0))
-            if req_per_page in self.per_page:
-                per_page = self.request_data['per_page']
-            elif hasattr(self.per_page, '__iter__'):
+            if hasattr(self.per_page, '__iter__'):
                 per_page = self.per_page[0]
-            else:
-                per_page = self.per_page
-        else:
-            per_page = getattr(settings, 'API_LIMIT_PER_PAGE', 20)
+                if req_per_page in self.per_page:
+                    per_page = req_per_page
 
         try:
             per_page = int(per_page)
