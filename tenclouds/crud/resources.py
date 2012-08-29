@@ -1,4 +1,5 @@
 from tastypie.authorization import Authorization
+from tastypie.cache import SimpleCache
 from tastypie.exceptions import ImmediateHttpResponse
 from tastypie import http
 from tastypie import resources
@@ -7,6 +8,7 @@ from tastypie.utils import trailing_slash
 from django.conf.urls.defaults import url
 from django.http import QueryDict
 
+from tenclouds.crud import fields
 from tenclouds.crud.paginator import Paginator
 
 
@@ -32,6 +34,13 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
             new_class._meta.static_data = {}
         if not hasattr(new_class._meta, 'per_page'):
             new_class._meta.per_page = None
+
+        # Set up the fields with url values
+        for name, field in new_class.base_fields.items():
+            if not field.url:
+                continue
+            new_class.base_fields[field.url] = fields.CharField(readonly=True)
+
         return new_class
 
     def __init__(cls, name, bases, dt):
@@ -74,6 +83,7 @@ class ModelResource(resources.ModelResource):
     def __init__(self, api_name=None):
         self._meta.paginator_class = Paginator
         self._meta.authorization = Authorization()  # Don't block any actions
+        self._meta.cache = SimpleCache()
         super(ModelResource, self).__init__(api_name)
 
     def get_list(self, request, **kwargs):
@@ -118,6 +128,7 @@ class ModelResource(resources.ModelResource):
         new_post = QueryDict("")
         new_post = new_post.copy()
         new_post.update(deserialized.get("query", {}))
+        new_post.update({'data': deserialized.get("data", {})})
         request.POST = new_post
 
         # Get the request method out of method name and convert the request
@@ -200,7 +211,7 @@ class ModelResource(resources.ModelResource):
         new query object.
         """
         # apply any filter from "filter_groups" to given query
-        if isinstance(filters, dict):
+        if not isinstance(filters, dict):
             groupfilter = filters.get('filters', None)
             groupfilters = (groupfilter,) if groupfilter else ()
         else:

@@ -1,6 +1,6 @@
-<h3><%= view.options.meta.data.title %></h3>
-
 <ul class="nav nav-list">
+<li class="nav-header"><%= view.options.meta.data.title %></li>
+
 <% collection.each(function (m) { %>
     <% if (m.get('counter') > 0) { %>
         <li>
@@ -8,8 +8,7 @@
                 <input type="checkbox" value="<%= m.id %>" <% if (m.get('_selected')) { %>checked<% } %>>
                 <span>
                     <%= m.escape('name') %>
-                    &mdash;
-                    <em><%= m.escape('counter') %></em>
+                    (<%= m.escape('counter') %>)
                 </span>
             </label>
         </li>

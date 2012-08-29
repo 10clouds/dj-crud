@@ -1,8 +1,12 @@
-<a class="crud-dropdown-toggle dense label btn <% if (view.actionsInProgress > 0) { %>processing<% } %> " href="javascript://">
+<div class="inline btn-group">
+<button class="btn <% if (view.actionsInProgress > 0) { %>processing<% } %>">
     Label actions
-</a>
-<ul style="display:none;" class="crud-dropdown dense-menu">
-    <hr>
-    <li class="action create-label">Create label</li>
-    <li class="action apply-changes">Apply changes</li>
+</button>
+<button id="actions-dropdown" class="btn dropdown-toggle crud-dropdown-toggle" data-toggle="dropdown">
+    <span class="caret"></span>
+</button>
+<ul class="dropdown-menu crud-dropdown">
+    <li class="divider"></li>
+    <li class="crud-action create-label"><a href="#">Create label</a></li>
+    <li class="crud-action apply-changes"><a href="#">Apply changes</a></li>
 </ul>

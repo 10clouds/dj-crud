@@ -1,6 +1,7 @@
 crud.view.Widget = crud.view.View.extend({
 
-    tagName: 'span'
+    tagName: 'div',
+    className: 'inline'
 
 });
 
@@ -148,7 +149,7 @@ crud.view.DropdownMenuWidget = crud.view.Widget.extend({
 
         var $dropdown = this.$(this.dropdownSelector)
                 .css({
-                    left: $activator.offset().left,
+                    //left: $activator.offset().left,
                     minWidth: $activator.innerWidth()
                 })
                 .toggle();
@@ -207,8 +208,9 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
             this.labelViews = [];
 
             var that = this;
-            var $ul = this.$('ul:first')
+            var $ul = this.$('ul:first');
             this.labelCollection.each(function (m) {
+                console.log(m);
                 var item = new crud.view.ThreeStateCheckbox({
                     state: that.labelState(m),
                     model: m
@@ -237,7 +239,7 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
         var selected = 0;
         var that = this;
         var queryIds = (that.options.actionQuery) ? that.options.actionQuery.id : null;
-
+        console.log(this.collection);
         var matched = this.collection.filter(function (m) {
             // only selected items matters
             if (!m.get('_selected') && !queryIds) {
@@ -271,7 +273,7 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
     },
 
     applyChanges: function (e) {
-        var changes = {}
+        var changes = {};
         var changesSize = 0;
         _.each(this.labelViews, function (v) {
             if (v.initialState === v.state) {
@@ -293,10 +295,10 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
             success: that.actionDone,
             error: that.actionDone,
             data: changes
-        }
+        };
         this.actionsInProgress += 1;
         this.render();
-        this.collection.runAction('labels_change', options, this.options.actionQuery);
+        this.collection.runAction('patch_labels', options, this.options.actionQuery);
     },
 
     createLabel: function (e) {
@@ -316,13 +318,13 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
                 });
             }
         });
-        dialog.popup()
+        dialog.popup();
     },
 
     // Extract an array of labels from model.
-    // Override for curstom behavior (by default: model.get('labels'))
+    // Override for custom behavior (by default: model.get('labels'))
     getLabels: function (model) {
-        return model.get('labels');
+        return model.get('labels').split(", ");
     },
 
     actionDone: function () {
@@ -390,7 +392,7 @@ crud.view.ActionsMenuWidget = crud.view.DropdownMenuWidget.extend({
                 var done = function () {
                     that.actionDone();
                     that.render();
-                }
+                };
                 var error = function (resp) {
                     // wtf? why this can happen?
                     if (resp.status === 200) {
@@ -401,7 +403,7 @@ crud.view.ActionsMenuWidget = crud.view.DropdownMenuWidget.extend({
                     var form = JSON.parse(resp.responseText);
                     that.displayActionDialog(action, form);
                     that.render();
-                }
+                };
 
                 var options = {success: done, error: error, data: formData};
                 that.actionsInProgress += 1;
@@ -492,10 +494,10 @@ crud.view.LinkWidget = crud.view.Widget.extend({
 
         _.bindAll(this, 'onLinkClick');
 
-        var templateStr = '<a class="dense btn ' + this.options.extraClass + '" href="' + (this.options.href || 'javascript://') + '">' + this.options.text + '</a>';
+        var templateStr = '<a class="btn ' + this.options.extraClass + '" href="' + (this.options.href || 'javascript://') + '">' + this.options.text + '</a>';
         this.template = {
             render: function () { return templateStr; }
-        }
+        };
     },
 
     onLinkClick: function (e) {

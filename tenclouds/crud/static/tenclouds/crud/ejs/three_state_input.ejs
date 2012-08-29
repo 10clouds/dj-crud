@@ -1,7 +1,7 @@
-<div class="three-state-checkbox <%= state %> <% if (changed) { %>changed<% } %>">
-    <div class="icon"></div>
+<li class="three-state-checkbox <%= state %> <% if (changed) { %>changed<% } %>">
+    <a href="#"><div class="icon"></div>
     <div class="reload-info">
         <% if (changed) { %>&#10227;<% } else { %>&nbsp;<% } %>
     </div>
-    <%= label %>
-</div>
+    <%= label %></a>
+</li>
