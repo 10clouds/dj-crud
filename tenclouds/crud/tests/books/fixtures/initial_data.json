@@ -1,0 +1,122 @@
+[
+    {
+        "pk": 1,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Stephenson",
+            "title": "Cryptonomicon"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "J.R.R. Tolkien",
+            "title": "THE LORD OF THE RINGS"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": false,
+            "author_name": "King",
+            "title": "The green mile"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": false,
+            "author_name": "Ayn Rand",
+            "title": "ATLAS SHRUGGED"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "George Orwell",
+            "title": "1984"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Joseph Heller",
+            "title": "CATCH-22"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Robert Heinlein",
+            "title": "THE MOON IS A HARSH MISTRESS"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Nevil Shute",
+            "title": "A TOWN LIKE ALICE"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "George Orwell",
+            "title": "ANIMAL FARM"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Joseph Conrad",
+            "title": "Nostromo"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Vladimir Nabokov",
+            "title": "PALE FIRE"
+        }
+    },
+    {
+        "pk": 12,
+        "model": "books.book",
+        "fields": {
+            "note": "",
+            "is_available": true,
+            "author_name": "Jack Kerouac",
+            "title": "ON THE ROAD"
+        }
+    }
+]
