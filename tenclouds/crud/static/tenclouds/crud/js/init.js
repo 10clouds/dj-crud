@@ -4,5 +4,6 @@ crud = {
     view: {},
     router: {},
     event: {},
-    util: {}
+    util: {},
+    settings: {}
 };

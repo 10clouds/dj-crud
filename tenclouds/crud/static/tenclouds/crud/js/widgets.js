@@ -10,7 +10,7 @@ crud.view.ModalWindow = crud.view.View.extend({
 
     className: 'crud-modalwindow',
 
-    template: crud.template('/statics/tenclouds/crud/ejs/modalwindow.ejs'),
+    template: crud.template('modalwindow'),
 
     events: {
         'click .close': 'close',
@@ -171,7 +171,7 @@ crud.view.DropdownMenuWidget = crud.view.Widget.extend({
 
 crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
 
-    template: crud.template('/statics/tenclouds/crud/ejs/label_actions.ejs'),
+    template: crud.template('label_actions'),
 
     events: {
         'click .apply-changes': 'applyChanges',
@@ -338,7 +338,7 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
 
 crud.view.ActionsMenuWidget = crud.view.DropdownMenuWidget.extend({
 
-    template: crud.template('/statics/tenclouds/crud/ejs/table_actions.ejs'),
+    template: crud.template('table_actions'),
 
     initialize: function (options) {
         this.actionsInProgress = 0;
@@ -519,7 +519,7 @@ crud.view.ThreeStateCheckbox = Backbone.View.extend({
         'click': 'stateChange'
     },
 
-    template: crud.template('/statics/tenclouds/crud/ejs/three_state_input.ejs'),
+    template: crud.template('three_state_input'),
 
     initialize: function () {
         _.bindAll(this, 'stateChange', 'render');
@@ -570,7 +570,7 @@ crud.view.ActiveMessages = crud.view.Widget.extend({
 
     className: 'active-messages',
 
-    template: crud.template('/statics/tenclouds/crud/ejs/active_messages.ejs'),
+    template: crud.template('active_messages'),
 
     events: $.extend({
         'click .close': 'closeClicked'
