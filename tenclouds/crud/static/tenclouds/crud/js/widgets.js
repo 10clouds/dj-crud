@@ -556,6 +556,8 @@ crud.view.ThreeStateCheckbox = Backbone.View.extend({
             case 'off':
                 this.state = 'on';
                 break;
+            default:
+                throw "Unexpected Error in crud/js/widget.js:560";
         }
         this.render();
         return false;

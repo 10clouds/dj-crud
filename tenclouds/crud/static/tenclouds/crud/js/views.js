@@ -126,7 +126,7 @@ crud.view.Paginator = crud.view.View.extend({
             var parts = document.location.hash.split('#');
             var rx = new RegExp('^/page-(\\d+)$');
             for (var i=1; i<parts.length; ++i) {
-                var res = rx.exec(parts[i])
+                var res = rx.exec(parts[i]);
                 if (res) {
                     var page = parseInt(res[1]);
                     this.collection.page = page;
@@ -140,7 +140,7 @@ crud.view.Paginator = crud.view.View.extend({
                 var pageNr = that.parseUrl();
                 if (pageNr !== undefined && that.collection.page !== pageNr) {
                     that.collection.page = pageNr;
-                    that.collection.fetch()
+                    that.collection.fetch();
                 }
             });
         }
@@ -153,7 +153,7 @@ crud.view.Paginator = crud.view.View.extend({
         var parts = document.location.hash.split('#');
         var rx = new RegExp('/page-(\\d+)');
         for (var i=1; i<parts.length; ++i) {
-            var res = rx.exec(parts[i])
+            var res = rx.exec(parts[i]);
             if (res) {
                 return parseInt(res[1]);
             }
@@ -169,7 +169,7 @@ crud.view.Paginator = crud.view.View.extend({
         var rx = new RegExp('/page-(\\d+)');
         var updated = false;
         for (var i=1; i<parts.length; ++i) {
-            var res = rx.exec(parts[i])
+            var res = rx.exec(parts[i]);
             if (res) {
                 if (this.collection.page === 1) {
                     parts.splice(i,i);
