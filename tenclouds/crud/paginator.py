@@ -67,22 +67,37 @@ class Paginator(paginator.Paginator):
 
         return per_page
 
-    def get_page(self, value_name='page', default=1):
+    def get_page(self, value_name='page', default_min=1,
+            total=None, per_page=None):
+        """Returns sanitized page number based on self.request_data.
+        It is, one of the three: ``default_min``, max available page or the
+        request value under ``value_name``.
+
+        Keyword arguments:
+        value_name -- name of the variable to look for in self.request_data
+        default_min -- page number returned if the page is too small or missing
+        total, per_page -- precomputed results (pass if avaialable)
+
         """
-        """
+        def _clean_page_number(pgno):
+            # too small
+            if pgno < 1:
+                return default_min
+
+            # too big
+            total = self.get_count()
+            per_page = self.get_per_page()
+            max_page = total / per_page
+            if pgno > max_page:
+                return max_page
+
+            # all fine
+            return pgno
         try:
-            page_number = int(self.request_data.get(value_name,
-                                                    default))
+            page_number = int(self.request_data.get(value_name, default_min))
+            return _clean_page_number(page_number)
         except (TypeError, ValueError):
-            page_number = default
-        if page_number < 1:
-            page_number = default
-        # Fallback to default if provided page is to large
-        total = self.get_count()
-        per_page = self.get_per_page()
-        if total < per_page or (total / per_page) > page_number:
-            page_number = default
-        return page_number
+            return default_min
 
     def page(self):
         """
@@ -93,7 +108,7 @@ class Paginator(paginator.Paginator):
         """
         per_page = self.get_per_page()
         total = self.get_count()
-        page = self.get_page()
+        page = self.get_page(total=total, per_page=per_page)
 
         offset = self.offset or per_page * (page - 1)
         objects = self.get_slice(per_page, offset)
