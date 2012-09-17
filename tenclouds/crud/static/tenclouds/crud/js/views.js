@@ -1,14 +1,31 @@
-crud.template = crud.template || function (path) {
+/**
+* Provides an object capable of rendering the template of given name.
+* @argument template_name Name of the template that will be rendered.
+* @returns An object having render(ctx) method.
+*/
+crud.template = crud.template || function (template_name) {
     var t;
     return {
         render: function (ctx) {
-            if (!t) {
-                t = new EJS({url: path});
-            }
+            t = t || new EJS({
+                url: crud.template.get_template_url(template_name)
+            });
+
             var extendedCtx = $.extend(ctx || {}, {crud: crud, '$': jQuery});
             return t.render(extendedCtx);
         }
     };
+};
+
+/**
+* Creates url to access the ejs template specified.
+* @argument template_name Name of the template, excluding its extension.
+* @returns Complete template path.
+*/
+crud.template.get_template_url = crud.template.get_template_url || function(template_name){
+    return crud.settings.static_url + '/' +
+           crud.settings.template_path + '/' +
+           template_name + '.ejs';
 };
 
 crud.view.View = Backbone.View.extend({
@@ -51,7 +68,7 @@ crud.view.TableRow = crud.view.View.extend({
 
     className: 'crud-table-row',
 
-    template: crud.template('/statics/tenclouds/crud/ejs/table_row.ejs'),
+    template: crud.template('table_row'),
 
     events: {
         'click [name^=item_]': 'onToggle'
@@ -104,7 +121,7 @@ crud.view.Paginator = crud.view.View.extend({
     className: 'crud-paginator',
     isGlobal: true,
 
-    template: crud.template('/statics/tenclouds/crud/ejs/paginator.ejs'),
+    template: crud.template('paginator'),
 
     events: {
         'click [class^=crud-paginator-page]': 'gotoPage',
@@ -128,7 +145,7 @@ crud.view.Paginator = crud.view.View.extend({
             for (var i=1; i<parts.length; ++i) {
                 var res = rx.exec(parts[i]);
                 if (res) {
-                    var page = parseInt(res[1]);
+                    var page = parseInt(res[1], 10);
                     this.collection.page = page;
                     break;
                 }
@@ -155,7 +172,7 @@ crud.view.Paginator = crud.view.View.extend({
         for (var i=1; i<parts.length; ++i) {
             var res = rx.exec(parts[i]);
             if (res) {
-                return parseInt(res[1]);
+                return parseInt(res[1], 10);
             }
         }
     },
@@ -196,7 +213,7 @@ crud.view.Paginator = crud.view.View.extend({
         var pageNr;
         for (var i=0; i<clsList.length; ++i) {
             try {
-                pageNr = parseInt(cls.match(/crud-paginator-page-(\d+)/)[1]);
+                pageNr = parseInt(cls.match(/crud-paginator-page-(\d+)/)[1], 10);
             } catch (err) {
                 continue;
             }
@@ -210,7 +227,7 @@ crud.view.Paginator = crud.view.View.extend({
     },
 
     changePerPage: function (e) {
-        this.collection.perPage = parseInt($(e.target).text());
+        this.collection.perPage = parseInt($(e.target).text(), 10);
         this.collection.fetch();
         return false;
     }
@@ -221,7 +238,7 @@ crud.view.Paginator = crud.view.View.extend({
 
 crud.view.TableFilter = crud.view.View.extend({
 
-    template: crud.template('/statics/tenclouds/crud/ejs/table_filter.ejs')
+    template: crud.template('table_filter')
 });
 
 
@@ -229,7 +246,7 @@ crud.view.Table = crud.view.View.extend({
 
     itemViewClass: crud.view.TableRow,
 
-    template: crud.template('/statics/tenclouds/crud/ejs/table.ejs'),
+    template: crud.template('table'),
 
     widgets: {
         '.crud-meta-actions': [
@@ -303,8 +320,8 @@ crud.view.Table = crud.view.View.extend({
             if (this.collection.allSelected) {
                 this.showMessage('warning', '<strong>' + this.collection.total + '</strong> objects selected.');
             } else {
-                this.showMessage('warning', '<strong>' + this.collection.length + '</strong> objects selected&nbsp;'
-                    + '<a href="#" class="crud-select-all-items ">Select all ' + this.collection.total + '.</a>');
+                this.showMessage('warning', '<strong>' + this.collection.length + '</strong> objects selected&nbsp;' +
+                    '<a href="#" class="crud-select-all-items ">Select all ' + this.collection.total + '.</a>');
                 this.delegateEvents({'click .crud-select-all-items': 'onSelectedAll'});
             }
         } else {
@@ -328,7 +345,7 @@ crud.view.Table = crud.view.View.extend({
         if (timeout !== undefined) {
             if (that._showMessageTimeout) {
                 clearTimeout(that._showMessageTimeout);
-                delete _showMessageTimeout;
+                delete that._showMessageTimeout;
             }
             that._showInfoTimer = setTimeout(function () {
                 $infoRow.fadeOut();
@@ -398,7 +415,7 @@ crud.view.Table = crud.view.View.extend({
 
 crud.view.LabelList = crud.view.View.extend({
 
-    template: crud.template('/statics/tenclouds/crud/ejs/label_list.ejs'),
+    template: crud.template('label_list'),
 
     events: {
         'change [type=checkbox]': 'onLabelChange'
@@ -467,7 +484,7 @@ crud.view.FullTextSearchItem = crud.view.View.extend({
 
     tagName: 'li',
 
-    template: crud.template('/statics/tenclouds/crud/ejs/search_item.ejs'),
+    template: crud.template('search_item'),
 
     events: {
         'search input': 'search',
@@ -525,7 +542,7 @@ crud.view.ChoiceFilterItem = crud.view.View.extend({
 
     tagName: 'li',
 
-    template: crud.template('/statics/tenclouds/crud/ejs/filter_item.ejs'),
+    template: crud.template('filter_item'),
 
     events: {
         'click': 'onFilterChange'
@@ -562,7 +579,7 @@ crud.view.RadioFilterItem = crud.view.View.extend({
 
     tagName: 'li',
 
-    template: crud.template('/statics/tenclouds/crud/ejs/radiofilter_item.ejs'),
+    template: crud.template('radiofilter_item'),
 
     events: {
         'change': 'onFilterChange'
@@ -597,7 +614,7 @@ crud.view.RadioFilterItem = crud.view.View.extend({
 
     render: function () {
         crud.view.View.prototype.render.call(this);
-        if(this.isActive == true){
+        if(this.isActive === true){
             $(this.el).addClass("current");
         }
         return this;
@@ -661,7 +678,7 @@ crud.view.standardFilterWidgets = {
 //
 crud.view.FilterGroup = crud.view.View.extend({
 
-    template: crud.template('/statics/tenclouds/crud/ejs/filter_group.ejs'),
+    template: crud.template('filter_group'),
 
     filterWidgets: crud.view.standardFilterWidgets,
 
@@ -766,4 +783,4 @@ crud.view.FilterList = crud.view.View.extend({
         return this;
     }
 
-})
+});
