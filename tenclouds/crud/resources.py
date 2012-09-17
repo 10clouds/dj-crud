@@ -98,7 +98,10 @@ class ModelResource(resources.ModelResource):
         # TODO: Uncached for now. Invalidation that works for everyone may be
         #       impossible.
         objects = self.obj_get_list(request=request, **self.remove_api_resource_names(kwargs))
-        sorted_objects = self.apply_sorting(objects, options=request.GET)
+        ordering = dict(request.GET)
+        if getattr(self._meta, 'ordering', False):
+            ordering.setdefault('order_by', self._meta.ordering)
+        sorted_objects = self.apply_sorting(objects, options=ordering)
 
         paginator = self._meta.paginator_class(request.GET, sorted_objects,
                                                resource_uri=self.get_resource_list_uri(),
