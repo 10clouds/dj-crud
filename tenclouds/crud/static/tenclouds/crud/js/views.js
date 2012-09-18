@@ -1,14 +1,15 @@
 /**
 * Provides an object capable of rendering the template of given name.
-* @argument template_name Name of the template that will be rendered.
+* @argument template_name Name of the template to get.
+* @argument static_url Overrides crud.settings.static_url.
 * @returns An object having render(ctx) method.
 */
-crud.template = crud.template || function (template_name) {
+crud.template = crud.template || function (template_name, static_url) {
     var t;
     return {
         render: function (ctx) {
             t = t || new EJS({
-                url: crud.template.get_template_url(template_name)
+                url: crud.template.get_template_url(template_name, static_url)
             });
 
             var extendedCtx = $.extend(ctx || {}, {crud: crud, '$': jQuery});
@@ -19,13 +20,24 @@ crud.template = crud.template || function (template_name) {
 
 /**
 * Creates url to access the ejs template specified.
-* @argument template_name Name of the template, excluding its extension.
-* @returns Complete template path.
+* @argument template_name Path relative to static_url, including the filename
+                          and extension.
+* @argument static_url Overrides crud.settings.static_url.
+* @returns Complete template url.
 */
-crud.template.get_template_url = crud.template.get_template_url || function(template_name){
-    return crud.settings.static_url + '/' +
-           crud.settings.template_path + '/' +
-           template_name + '.ejs';
+crud.template.get_template_url = crud.template.get_template_url || function(template_name, static_url){
+    return (static_url || crud.settings.static_url) + '/' + template_name;
+};
+
+/**
+* Wrapper of crud.template for getting builtin templates.
+* The functions does assumes builtin templates can be found in
+* crud.settings.template_path and have .ejs extension.
+* @argument template_name Filename of the template to get, without extension.
+* @returns An object having render(ctx) method.
+*/
+crud.crud_template = crud.crud_template || function (template_name) {
+    return crud.template(crud.settings.template_path + '/' + template_name + '.ejs');
 };
 
 crud.view.View = Backbone.View.extend({
@@ -68,7 +80,7 @@ crud.view.TableRow = crud.view.View.extend({
 
     className: 'crud-table-row',
 
-    template: crud.template('table_row'),
+    template: crud.crud_template('table_row'),
 
     events: {
         'click [name^=item_]': 'onToggle'
@@ -121,7 +133,7 @@ crud.view.Paginator = crud.view.View.extend({
     className: 'crud-paginator',
     isGlobal: true,
 
-    template: crud.template('paginator'),
+    template: crud.crud_template('paginator'),
 
     events: {
         'click [class^=crud-paginator-page]': 'gotoPage',
@@ -238,7 +250,7 @@ crud.view.Paginator = crud.view.View.extend({
 
 crud.view.TableFilter = crud.view.View.extend({
 
-    template: crud.template('table_filter')
+    template: crud.crud_template('table_filter')
 });
 
 
@@ -246,7 +258,7 @@ crud.view.Table = crud.view.View.extend({
 
     itemViewClass: crud.view.TableRow,
 
-    template: crud.template('table'),
+    template: crud.crud_template('table'),
 
     widgets: {
         '.crud-meta-actions': [
@@ -415,7 +427,7 @@ crud.view.Table = crud.view.View.extend({
 
 crud.view.LabelList = crud.view.View.extend({
 
-    template: crud.template('label_list'),
+    template: crud.crud_template('label_list'),
 
     events: {
         'change [type=checkbox]': 'onLabelChange'
@@ -484,7 +496,7 @@ crud.view.FullTextSearchItem = crud.view.View.extend({
 
     tagName: 'li',
 
-    template: crud.template('search_item'),
+    template: crud.crud_template('search_item'),
 
     events: {
         'search input': 'search',
@@ -542,7 +554,7 @@ crud.view.ChoiceFilterItem = crud.view.View.extend({
 
     tagName: 'li',
 
-    template: crud.template('filter_item'),
+    template: crud.crud_template('filter_item'),
 
     events: {
         'click': 'onFilterChange'
@@ -579,7 +591,7 @@ crud.view.RadioFilterItem = crud.view.View.extend({
 
     tagName: 'li',
 
-    template: crud.template('radiofilter_item'),
+    template: crud.crud_template('radiofilter_item'),
 
     events: {
         'change': 'onFilterChange'
@@ -678,7 +690,7 @@ crud.view.standardFilterWidgets = {
 //
 crud.view.FilterGroup = crud.view.View.extend({
 
-    template: crud.template('filter_group'),
+    template: crud.crud_template('filter_group'),
 
     filterWidgets: crud.view.standardFilterWidgets,
 
