@@ -34,6 +34,12 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
             new_class._meta.static_data = {}
         if not hasattr(new_class._meta, 'per_page'):
             new_class._meta.per_page = None
+        if not hasattr(new_class._meta, 'paginator_class'):
+            new_class._meta.paginator_class = Paginator
+        if not hasattr(new_class._meta, 'authorization'):
+            new_class._meta.authorization = Authorization()
+        if not hasattr(new_class._meta, 'cache'):
+            new_class._meta.cache = SimpleCache()
 
         # Set up the fields with url values
         for name, field in new_class.base_fields.items():
@@ -81,9 +87,6 @@ class ModelResource(resources.ModelResource):
     __metaclass__ = ModelDeclarativeMetaclass
 
     def __init__(self, api_name=None):
-        self._meta.paginator_class = Paginator
-        self._meta.authorization = Authorization()  # Don't block any actions
-        self._meta.cache = SimpleCache()
         super(ModelResource, self).__init__(api_name)
 
     def get_list(self, request, **kwargs):
