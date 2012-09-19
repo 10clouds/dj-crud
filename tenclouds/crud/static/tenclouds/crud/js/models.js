@@ -122,6 +122,7 @@ crud.collection.PaginatedCollection = Backbone.Collection.extend({
         this.page = resp.page;
         this.total = resp.total;
         this.perPage = resp.per_page;
+        this.ordering = resp.ordering;
         return resp.objects;
     },
 
