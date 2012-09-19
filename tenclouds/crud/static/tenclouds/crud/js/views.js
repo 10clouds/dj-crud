@@ -294,6 +294,12 @@ crud.view.Table = crud.view.View.extend({
         }
     },
 
+    removeWidget: function (selector, widget) {
+        if (this.widgets[selector] !== undefined){
+            this.widgets[selector] = _.without(this.widgets[selector], widget);
+        }
+    },
+
     requestError: function (err) {
         // Callback for request error singnals
         //
