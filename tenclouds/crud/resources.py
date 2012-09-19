@@ -34,11 +34,15 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
             new_class._meta.static_data = {}
         if not hasattr(new_class._meta, 'per_page'):
             new_class._meta.per_page = None
-        if not hasattr(new_class._meta, 'paginator_class'):
+        # we have to replace some meta fields which were set in  super __new__
+        # as default when they were not defined in Meta subclass
+        opts = getattr(new_class, 'Meta', None)
+        opts_dir = dir(opts)
+        if 'paginator_class' not in opts_dir:
             new_class._meta.paginator_class = Paginator
-        if not hasattr(new_class._meta, 'authorization'):
+        if 'authorization' not in opts_dir:
             new_class._meta.authorization = Authorization()
-        if not hasattr(new_class._meta, 'cache'):
+        if 'cache' not in opts_dir:
             new_class._meta.cache = SimpleCache()
 
         # Set up the fields with url values
