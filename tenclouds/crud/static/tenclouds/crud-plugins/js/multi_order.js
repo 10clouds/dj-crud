@@ -82,6 +82,7 @@ crud.collection.Collection = crud.collection.Collection.extend({
     * @returns State of the sorter after change.
     */
     querySortOrder: function (sortField) {
+        if (!sortField) return;
         if (!this.multi_field_ordering)
             return orig_collection.prototype.querySortOrder.call(this, sortField);
         var orderToSet;

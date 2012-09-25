@@ -280,6 +280,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
     * @argument sortField The field to toggle or set.
     */
     querySortOrder: function (sortField, set) {
+        if (!sortField) return;
         var result = {};
         if(this.querySort && this.querySort[sortField] === 'up') {
             result = 'down';
@@ -295,7 +296,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
     * @returns An array of strings, eg: ['title', '-date'].
     */
     querySortToDjango: function() {
-        results = [];
+        var results = [];
         if (this.querySort) {
             var that = this;
             // using fieldsSortable allows to pass the columns in the order
