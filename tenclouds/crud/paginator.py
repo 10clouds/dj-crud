@@ -88,7 +88,7 @@ class Paginator(paginator.Paginator):
             # too big
             total = self.get_count()
             per_page = self.get_per_page()
-            max_page = math.ceil(float(total) / per_page)
+            max_page = int(math.ceil(float(total) / per_page))
 
             if pgno > max_page:
                 return max_page if max_page else default_min
