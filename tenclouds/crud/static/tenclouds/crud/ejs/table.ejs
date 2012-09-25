@@ -1,17 +1,17 @@
 <div class="crud-meta-actions" style="margin: 5px 0 30px 0;">
 </div>
 
-
 <div class="active-actions">
 </div>
-
 
 <table class="table table-striped">
     <thead>
         <tr>
         <% for (var i=0; i<meta.fieldsOrder.length; ++i) { %>
             <% if ($.inArray(meta.fieldsOrder[i], meta.fieldsSortable) > -1) { %>
-                <th class="header crud-sortable-column <% if (collection.querySort === meta.fieldsOrder[i]) { %>headerSortUp<% } %> <% if (collection.querySort === '-' + meta.fieldsOrder[i]) { %>headerSortDown<% } %>">
+                <th class="header crud-sortable-column
+                        <% if (collection.querySort && (collection.querySort[meta.fieldsOrder[i]] === 'up')) { %>headerSortUp<% } %>
+                        <% if (collection.querySort && (collection.querySort[meta.fieldsOrder[i]] === 'down')) { %>headerSortDown<% } %>">
                     <%= meta.fieldsTitle[meta.fieldsOrder[i]] %>
                     <input type="hidden" value="<%= meta.fieldsOrder[i] %>">
                 </th>
