@@ -298,7 +298,10 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         results = [];
         if (this.querySort) {
             var that = this;
-            _.each(_.keys(this.querySort), function(sorter){
+            // using fieldsSortable allows to pass the columns in the order
+            // specified by the handler, it's a nice to have feature for any
+            // overrides
+            _.each(this.fieldsSortable, function(sorter){
                 var val = that.querySort[sorter];
                 if (val === undefined){
                     return;
