@@ -98,7 +98,7 @@ class ModelResource(resources.ModelResource):
         using ``default_ordering`` Meta setting.
 
         """
-        order = getattr(self._meta, 'default_ordering')
+        order = getattr(self._meta, 'default_ordering', None)
         if order and 'order_by' not in request.GET:
             return dict(request.GET, order_by=order)
         return request.GET
