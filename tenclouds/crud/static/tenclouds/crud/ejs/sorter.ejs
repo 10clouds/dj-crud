@@ -1,0 +1,22 @@
+<div class="inline btn-group">
+<button class="btn">
+    Sort
+</button>
+<button id="actions-dropdown" class="btn dropdown-toggle crud-dropdown-toggle" data-toggle="dropdown">
+    <span class="caret"></span>
+</button>
+<ul class="dropdown-menu crud-dropdown">
+    <% for (var i = 0; i < meta.fieldsSortable.length; ++i) { %>
+        <li class="crud-sort-by">
+            <a class="crud-sorter-option" href="#">
+                <%= meta.fieldsTitle[meta.fieldsSortable[i]] %>
+                <input type="hidden" value="<%= meta.fieldsSortable[i] %>" />
+                <% if (ordering[meta.fieldsSortable[i]] == 'up') { %>
+                    <i class="icon-arrow-up"></i>
+                <% } else if (ordering[meta.fieldsSortable[i]] == 'down') { %>
+                    <i class="icon-arrow-down"></i>
+                <% } %>
+            </a>
+        </li>
+    <% } %>
+</ul>

@@ -595,3 +595,50 @@ crud.view.ActiveMessages = crud.view.Widget.extend({
     }
 
 });
+
+/**
+* Dropdown widget presenting ordering fields specified in the django resource.
+*
+* Menu options are generated based on crud.collections.Collection's querySort
+* and ordering fields. Clicking on the options will toggle sorting field state
+* among three: inactive, up and down. Their current state will be represented
+* by an arrow icon (or it's lack) beside the menu option.
+*
+* NOTE: When the widget is a part of some crud view it'll be rendered anew with
+* each colection fetch, thus closing the dropdown after each click.
+*/
+crud.view.SorterSelect = crud.view.Widget.extend({
+
+    template: crud.crud_template('sorter'),
+
+    events: {
+        'click .crud-sorter-option': 'onSortableClick'
+    },
+
+    initialize: function (options) {
+        this.options = options;
+    },
+
+    /**
+    * Requests ordering update on the related crud.view.Table. Bound to sorting
+    * field button.
+    */
+    onSortableClick: function(e){
+        var item = $(e.target).find('input').val();
+        item = item || $(e.target).parent().find('input').val();
+        this.options.collection.querySortOrder(item);
+        this.options.collection.fetch();
+    },
+
+    /**
+    * Renders the template providing meta and ordering context variables.
+    */
+    render: function () {
+        $(this.el).html(this.template.render({
+            meta: this.options.meta,
+            ordering: this.options.collection.querySort || {}
+        }));
+        return this;
+    }
+
+});

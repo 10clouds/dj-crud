@@ -93,6 +93,46 @@ class ModelResource(resources.ModelResource):
     def __init__(self, api_name=None):
         super(ModelResource, self).__init__(api_name)
 
+    def get_ordering(self, request):
+        """Adds default ``order_by`` if the key is not present in the query
+        using ``default_ordering`` Meta setting.
+
+        """
+        order = getattr(self._meta, 'default_ordering')
+        if order and 'order_by' not in request.GET:
+            return dict(request.GET, order_by=order)
+        return request.GET
+
+    def get_model_fields_to_api_fields_map(self):
+        """Returns mapping of django model field names to tastypie api field
+        names.
+
+        """
+        fmap = {}
+        for api_field, field in self.fields.items():
+            if hasattr(field, 'attribute'):
+                fmap[field.attribute] = api_field
+        return fmap
+
+    def get_ordering_in_api_names(self, objects):
+        """Returns queryset ordering arguments mapped to api fieldsOrder.
+
+        The queryset ``order_by`` arguments have django model field names, since
+        they may differ from api fields, they must be mapped to the api names
+        before returning to the ui.
+
+        """
+        # get model_field: api_field mapping
+        mp = self.get_model_fields_to_api_fields_map()
+        mapped = []
+        for f in objects.query.order_by:
+            # mind the '-' modifier
+            if f.startswith('-'):
+                mapped.append('-{}'.format(mp[f[1:]]))
+            else:
+                mapped.append(mp[f])
+        return mapped
+
     def get_list(self, request, **kwargs):
         """
         Returns a serialized list of resources.
@@ -105,15 +145,16 @@ class ModelResource(resources.ModelResource):
         # TODO: Uncached for now. Invalidation that works for everyone may be
         #       impossible.
         objects = self.obj_get_list(request=request, **self.remove_api_resource_names(kwargs))
-        ordering = dict(request.GET)
-        if getattr(self._meta, 'ordering', False):
-            ordering.setdefault('order_by', self._meta.ordering)
-        sorted_objects = self.apply_sorting(objects, options=ordering)
+
+        sorting_params = self.get_ordering(request)
+        sorted_objects = self.apply_sorting(objects, options=sorting_params)
 
         paginator = self._meta.paginator_class(request.GET, sorted_objects,
                                                resource_uri=self.get_resource_list_uri(),
                                                per_page=self._meta.per_page)
         to_be_serialized = paginator.page()
+        to_be_serialized['ordering'] = self.get_ordering_in_api_names(
+            sorted_objects)
 
         # Dehydrate the bundles in preparation for serialization.
         bundles = [self.build_bundle(obj=obj, request=request) for obj in to_be_serialized['objects']]

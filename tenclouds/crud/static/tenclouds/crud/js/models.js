@@ -122,6 +122,7 @@ crud.collection.PaginatedCollection = Backbone.Collection.extend({
         this.page = resp.page;
         this.total = resp.total;
         this.perPage = resp.per_page;
+        this.ordering = resp.ordering;
         return resp.objects;
     },
 
@@ -154,7 +155,6 @@ crud.collection.PaginatedCollection = Backbone.Collection.extend({
 
 });
 
-
 crud.collection.Collection = crud.collection.PaginatedCollection.extend({
 
     model: crud.model.Model,
@@ -177,6 +177,12 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         this.isRefreshing = null;
     },
 
+    parse: function (resp) {
+        var orig = crud.collection.PaginatedCollection.prototype.parse.call(this, resp);
+        if(!this.querySort) { this.makeOrderingDict(); }
+        return orig;
+    },
+
     modelSelectChanged: function (m) {
         if (this.all(function (m) { return m.get('_selected'); })) {
             this.trigger('selected', true);
@@ -190,8 +196,8 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         this.allSelected = false;
         var that = this;
         var o = options || {};
+        // wrap default error callback
         var error = o.error;
-        // wrap default succes callback
         o.error = function (resp) {
             that.trigger('reset:error', resp);
             if (error) {
@@ -206,10 +212,8 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         var that = this;
 
         crud.modelMeta(this.urlRoot, function (meta) {
-            // apply initial sort order
-            if (meta.sortOrder) {
-                that.querySort = meta.sortOrder;
-            }
+            // required by sorting plugins
+            that.fieldsSortable = meta.fieldsSortable;
             callback(meta);
         });
     },
@@ -230,25 +234,96 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
             });
         }
 
-        query.sort = this.querySort;
+        query.sort = this.querySortAsList();
 
         return query;
     },
 
-    querySortOrder: function (sortField) {
-        if (this.querySort && this.querySort === sortField) {
-            // reverse sort
-            this.querySort = '-' + sortField;
-        } else {
-            this.querySort = sortField;
+    /**
+    * Converts the input ordering list into querySort structure and sets
+    * this.querySort to the correct value.
+    *
+    * This version supports only a single sorting field, thus only
+    * this.ordering[0] is used.
+    */
+    makeOrderingDict: function() {
+        if (this.ordering && this.ordering[0]) {
+            var field = this.ordering[0];
+            var is_reverse = field[0] === '-';
+            var value = is_reverse ? 'down' : 'up';
+            var clean_field = is_reverse ? field.substring(1) : field;
+            this.querySort = {};
+            this.querySort[clean_field] = value;
         }
+    },
+
+    /**
+    * Converts this.querySort to a form that can be sent to the server.
+    *
+    * Plugins using a more sophisticated querySort structure should override
+    * this method.
+    *
+    * @returns An array of sorting variables with optional '-' prefix for
+    * reverse ordering, eg. ['title', '-name']. Should return a falsy value or
+    * an empty array if this.querySort does not contain any valid sorting
+    * field definition.
+    */
+    querySortAsList: function() {
+        return this.querySortToDjango();
+    },
+
+    /**
+    * Changes the current active query sorting, either by reversing or applying
+    * a new sorting field.
+    *
+    * Basic implementation supports sorting only by a single column.
+    * @argument sortField The field to toggle or set.
+    */
+    querySortOrder: function (sortField, set) {
+        if (!sortField) return;
+        var result = {};
+        if(this.querySort && this.querySort[sortField] === 'up') {
+            result = 'down';
+        } else {
+            result = 'up';
+        }
+        this.querySort = {};
+        this.querySort[sortField] = result;
+    },
+
+    /**
+    * Converts self.querySort to a list of django-friendly sorting filters.
+    * @returns An array of strings, eg: ['title', '-date'].
+    */
+    querySortToDjango: function() {
+        var results = [];
+        if (this.querySort) {
+            var that = this;
+            // using fieldsSortable allows to pass the columns in the order
+            // specified by the handler, it's a nice to have feature for any
+            // overrides
+            _.each(this.fieldsSortable, function(sorter){
+                var val = that.querySort[sorter];
+                if (val === undefined){
+                    return;
+                } else if (val === 'up'){
+                    results.push(sorter);
+                } else if (val === 'down'){
+                    results.push('-' + sorter);
+                }
+            });
+        }
+        return results;
     },
 
     url: function () {
         var params = this.paginate ? {page: this.page, per_page: this.perPage} : {};
-        if (this.querySort) {
-            params.order_by = this.querySort;
+
+        order_by = this.querySortAsList();
+        if (order_by && order_by.length > 0){
+            params.order_by = order_by;
         }
+
         params = $.extend(params, this.queryFilter);
 
         var urlParams = $.param(params, true);
@@ -264,7 +339,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         if (preventFetch)
             return;
 
-        // because fetch may return the same objects and we dont want to loose
+        // because fetch may return the same objects and we dont want to lose
         // _selected attribute, update fetched data if required
         var beforeFetch = this.toArray();
         var that = this;
