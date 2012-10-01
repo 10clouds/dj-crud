@@ -786,8 +786,8 @@ crud.view.FilterList = crud.view.View.extend({
             if (_.isArray(groupsAffected) &&
                     groupsAffected.indexOf(filterGroup.title) === -1)
                 return;
-
-            var fg = new that.options.filterGroupClass({
+            var filterGroupClass = filterGroup.filterGroupClass || that.options.filterGroupClass;
+            var fg = new filterGroupClass({
                 bind: bindEvents,
                 collection: that.options.collection,
                 meta: that.options.meta,
