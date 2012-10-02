@@ -45,6 +45,9 @@ class Group(object):
                    for key in filter_keys)
         filters = [(f, k) for f, k in filters if f]
 
+        if not filters:
+            return query
+
         # filter using AND
         if self.query_joiner == 'and':
             for f, key in filters:
@@ -53,9 +56,12 @@ class Group(object):
 
         # filter using OR
         elif self.query_joiner == 'or':
-            q = Q()
+            q = None
             for f, key in filters:
-                q |= f.build_filters(key)
+                if q is None:
+                    q = f.build_filters(key)
+                else:
+                    q |= f.build_filters(key)
             return query.filter(q)
 
         raise TypeError('Unknown query joiner: %s' % self.query_joiner)
@@ -202,10 +208,13 @@ class FullTextSearch(BaseFilter):
             return False
 
     def build_filters(self, raw_key):
-        q = Q()
+        q = None
         value = raw_key.split(':', 1)[1]
         for f in self.filters:
-            q |= Q(**{f: value})
+            if q is None:
+                q = Q(**{f: value})
+            else:
+                q |= Q(**{f: value})
         return q
 
     def to_raw_field(self):
@@ -256,4 +265,3 @@ class AliasFilter(DynamicFilter):
                         return "{0}:{1}".format(name, alias)
 
                 yield F(alias, query=q)
-
