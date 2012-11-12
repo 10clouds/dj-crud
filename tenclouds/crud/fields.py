@@ -1,3 +1,14 @@
+# Warn if tastypie is already imported. ImportWarning is ignored by default, so
+# use UserWarning (it is important this warning is shown, as importing tastypie
+# may lead to strange and hard to diagnose errors).
+from sys import modules
+from warnings import warn
+for name in modules:
+    if name.startswith('tastypie.') or name == 'tastypie':
+        warn(name +
+             ' imported before tenclouds.crud.fields, something may break')
+
+
 # Forward all tastypie fields.
 from tastypie.fields import *
 
