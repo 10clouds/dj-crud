@@ -15,7 +15,8 @@ setup(
     url='https://github.com/10clouds/dj-crud',
     download_url='https://github.com/10clouds/dj-crud/tarball/master',
     install_requires=[
-        'django-tastypie'
+        'django-tastypie',
+        'django-tastypie-mongoengine'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

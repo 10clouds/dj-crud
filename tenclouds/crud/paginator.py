@@ -1,5 +1,6 @@
 import math
-from tastypie import paginator
+
+from tastypie_mongoengine import paginator
 from tastypie.exceptions import BadRequest
 
 from django.conf import settings

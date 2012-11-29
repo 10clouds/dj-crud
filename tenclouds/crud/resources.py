@@ -2,7 +2,7 @@ from tastypie.authorization import Authorization
 from tastypie.cache import SimpleCache
 from tastypie.exceptions import ImmediateHttpResponse
 from tastypie import http
-from tastypie import resources
+from tastypie_mongoengine import resources
 from tastypie.utils import trailing_slash
 
 from django.conf.urls.defaults import url
@@ -22,12 +22,13 @@ class Actions(object):
         return self.mapping[codename]
 
 
-class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
+class ModelDeclarativeMetaclass(resources.MongoEngineModelDeclarativeMetaclass):
 
     def __new__(cls, name, bases, attrs):
         new_class = super(ModelDeclarativeMetaclass, cls).__new__(cls, name, bases, attrs)
         # Don't return the resource_uri in fields order by default.
-        new_class.base_fields['resource_uri'].visible = False
+        if 'resource_uri' in new_class.base_fields:
+            new_class.base_fields['resource_uri'].visible = False
         if not hasattr(new_class._meta, 'filters'):
             new_class._meta.filters = ()
         if not hasattr(new_class._meta, 'static_data'):
@@ -76,7 +77,7 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
         super(ModelDeclarativeMetaclass, cls).__init__(name, bases, dt)
 
 
-class ModelResource(resources.ModelResource):
+class ModelResource(resources.MongoEngineResource):
     """
     This is a patched verion of tastypie resource. We use the
     schema element which contains our own Field() objects.
@@ -125,7 +126,7 @@ class ModelResource(resources.ModelResource):
         # get model_field: api_field mapping
         mp = self.get_model_fields_to_api_fields_map()
         mapped = []
-        for f in objects.query.order_by:
+        for f in objects()._ordering:
             # mind the '-' modifier
             if f.startswith('-'):
                 mapped.append('-{}'.format(mp[f[1:]]))

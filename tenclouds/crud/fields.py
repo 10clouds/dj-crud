@@ -10,15 +10,17 @@ for name in modules:
 
 
 # Forward all tastypie fields.
+from tastypie_mongoengine.fields import *
+
 from tastypie.fields import *
 
 from tastypie import fields
-
 
 # Override the default init - every field needs additional url and title param.
 # These are base classes for many other field types, so subclassing instead of
 # monkey patching would require much more work (and wouldn't handle new field
 # types automatically).
+
 
 def __apifield__init__(self, attribute=None, default=fields.NOT_PROVIDED,
                        null=False, blank=False, readonly=False, unique=False,
