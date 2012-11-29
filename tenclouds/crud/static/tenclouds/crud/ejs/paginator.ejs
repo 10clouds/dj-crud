@@ -48,7 +48,7 @@
 
 <% if (view.options.meta.perPage.length > 1) { %>
     <ul class="crud-paginator-per-page paginator-per-page">
-        <li class="disabled"><a>Items per page</a></li>
+        <li class="disabled"><span>Items per page</span></li>
         <% $.each(view.options.meta.perPage, function (i, perPage) { %>
             <li <% if (collection.perPage === perPage) { %>class="active"<% } %>>
                 <a href="#">
