@@ -1,4 +1,6 @@
 import json
+from mongoengine import connect
+from mongoengine.connection import disconnect
 
 from django.conf import settings
 from django.core.management import call_command
@@ -18,13 +20,15 @@ class TestCase(test.TestCase):
 
     def _pre_setup(self):
         # Add the test models to the db
+        disconnect('crud-local')
+        connect('crud-test-local')
         self._original_installed_apps = settings.INSTALLED_APPS
         settings.INSTALLED_APPS = self.apps
         settings.TASTYPIE_FULL_DEBUG = True
         loading.cache.loaded = False
         call_command('syncdb', interactive=False, verbosity=0)
         # Call the original method that does the fixtures etc.
-        super(TestCase, self)._pre_setup()
+        #super(TestCase, self)._pre_setup()
 
     def setUp(self):
         self.resource = BookResource()
@@ -76,6 +80,7 @@ class TestCase(test.TestCase):
     def test_allowed_requests(self):
         list_url = reverse('api_dispatch_list', kwargs=self.url_kwargs)
         response = self.c.get(list_url, {}, "text/json")
+        print response
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         self.assertEqual(content['total'], 12)
@@ -93,7 +98,8 @@ class TestCase(test.TestCase):
 
     def _post_teardown(self):
         # Call the original method.
-        super(TestCase, self)._post_teardown()
+        #super(TestCase, self)._post_teardown()
         # Restore the settings.
         settings.INSTALLED_APPS = self._original_installed_apps
         loading.cache.loaded = False
+        disconnect('crud-test-local')

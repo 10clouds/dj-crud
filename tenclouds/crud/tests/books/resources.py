@@ -8,10 +8,10 @@ from tenclouds.crud.tests.books.models import Book
 
 
 class BookResource(resources.ModelResource):
-    id = fields.IntegerField(attribute="id")
+    id = fields.ObjectId(attribute="id")
     title = fields.CharField(attribute="title", url="resource_uri")
     is_available = fields.BooleanField(attribute="is_available")
-    author_name = fields.CharField(attribute="author_name", title="Author")
+    author_name = fields.CharField(attribute="author_name", title="Author", null=True)
 
     class Meta:
         list_allowed_methods = ['get', ]
