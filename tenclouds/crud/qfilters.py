@@ -1,6 +1,6 @@
 import copy
 
-from django.db.models import Q
+from mongoengine.queryset import Q
 
 
 class Group(object):
