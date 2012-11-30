@@ -126,10 +126,10 @@ class ModelResource(resources.MongoEngineResource):
         # get model_field: api_field mapping
         mp = self.get_model_fields_to_api_fields_map()
         mapped = []
-        for f in objects()._ordering:
+        for f, direction in objects()._ordering:
             # mind the '-' modifier
-            if f.startswith('-'):
-                mapped.append('-{}'.format(mp[f[1:]]))
+            if direction < 0:
+                mapped.append('-{}'.format(mp[f]))
             else:
                 mapped.append(mp[f])
         return mapped
