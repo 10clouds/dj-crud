@@ -170,7 +170,8 @@ class ModelResource(resources.MongoEngineResource):
         Get the POST request, deserialize it, check wether the methods
         are allowed and return the action result.
         """
-        deserialized = self._meta.serializer.deserialize(request.raw_post_data,
+        body = request.body or '{}'
+        deserialized = self._meta.serializer.deserialize(body,
                                                          format='application/json')
         action_name = deserialized.get("action", None)
         if not action_name or not self.actions.mapping.get(action_name, None):
