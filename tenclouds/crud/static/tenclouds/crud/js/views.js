@@ -262,9 +262,11 @@ crud.view.Table = crud.view.View.extend({
 
     widgets: {
         '.crud-meta-actions': [
-            'crud.view.SelectAllWidget',
-            'crud.view.SelectNoneWidget',
             'crud.view.ActionsMenuWidget'
+        ],
+        '.crud-select': [
+            'crud.view.SelectAllWidget',
+            'crud.view.SelectNoneWidget'
         ],
         '.crud-table-paginator': [
             'crud.view.Paginator'

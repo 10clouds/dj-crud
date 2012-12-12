@@ -171,6 +171,7 @@ crud.view.DropdownMenuWidget = crud.view.Widget.extend({
 
 crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
 
+    className: 'active-actions btn-group',
     template: crud.crud_template('label_actions'),
 
     events: {
@@ -338,6 +339,7 @@ crud.view.LabelActions = crud.view.DropdownMenuWidget.extend({
 
 crud.view.ActionsMenuWidget = crud.view.DropdownMenuWidget.extend({
 
+    className: 'btn-group',
     template: crud.crud_template('table_actions'),
 
     initialize: function (options) {
@@ -425,13 +427,17 @@ crud.view.ActionsMenuWidget = crud.view.DropdownMenuWidget.extend({
 
 crud.view.SelectAllWidget = crud.view.Widget.extend({
 
+    tagName: 'a',
+    className: 'btn',
+
     template: {
         render: function () {
-            return '<a class="dense btn left"  href="#">All</a>'; }
+            return 'All';
+        }
     },
 
     events: {
-        'click a': 'selectAll'
+        'click': 'selectAll'
     },
 
     initialize: function () {
@@ -451,14 +457,17 @@ crud.view.SelectAllWidget = crud.view.Widget.extend({
 
 crud.view.SelectNoneWidget = crud.view.Widget.extend({
 
+    tagName: 'a',
+    className: 'btn',
+
     template: {
         render: function () {
-            return '<a class="dense btn right" href="#">None</a>';
+            return 'None';
         }
     },
 
     events: {
-        'click a': 'selectNone'
+        'click': 'selectNone'
     },
 
     initialize: function () {
