@@ -19,10 +19,13 @@ crud.model.Model = Backbone.Model.extend({
     placeholder: null,  // the placeholder for "null" values
 
     initialize: function(options) {
+        Backbone.Model.prototype.initialize.call(this, options);
         _.each(["roundFloat", "fixedFloat", "placeholder"], function(name) {
             if (options.name)
                 this.name = options.name;
         });
+        _.bindAll(this, 'url', 'display', 'getComplex', 'formatNumber',
+                  'escapeValue');
     },
 
     defaults: {
@@ -59,35 +62,64 @@ crud.model.Model = Backbone.Model.extend({
     // naming with __ separator as relation symbol, and can round float numbers.
     display: function (name) {
         var parts = name.split('__');
-        var val = this.get(name);
+        var val;
 
         if (parts.length === 1) {
-            if (this.roundFloat && _.isNumber(val)) {
-                var factor = Math.pow(10, this.roundFloat);
-                // little hack for rounding: see http://stackoverflow.com/a/661569
-                var rounded = Math.round(val * factor) / factor;
-
-                // fix float only if we want to and it's not an int
-                // http://stackoverflow.com/a/3886106
-                var fixFloat = (this.fixedFloat && rounded % 1 !== 0);
-
-                return (fixFloat) ? rounded.toFixed(this.roundFloat) : rounded;
-            }
-            if (!val) {
-                return this.placeholder;
-            }
-            return this.escape(name);
+            val = this.get(name);
+            val = this.formatNumber(val);
+            return this.escapeValue(val);
+        } else {
+            // We do not perform this.formatNumber() because of backward
+            // compatibility. IMHO optional number formatting should be applied
+            // here also.
+            val = this.getComplex(name);
+            return this.escapeValue(val);
         }
+    },
+
+    // similar to Backbone.Model.get, but respects django-like attribute
+    // naming with __ separator as relation symbol.
+    getComplex: function (name) {
+        var parts = name.split('__');
         var elem = this.get(parts[0]);
-        for (var i=1; i<parts.length; ++i) {
+        for (var i = 1; i < parts.length; ++i) {
             elem = elem[parts[i]];
         }
+        return elem;
+    },
 
+    // formats the value, if it is a number, according to settings.
+    // in other cases returns the unchanged value.
+    formatNumber: function (value) {
+        if (this.roundFloat && _.isNumber(value)) {
+            var factor = Math.pow(10, this.roundFloat);
+            // little hack for rounding: see http://stackoverflow.com/a/661569
+            var rounded = Math.round(value * factor) / factor;
+
+            // fix float only if we want to and it's not an int
+            // http://stackoverflow.com/a/3886106
+            var fixFloat = (this.fixedFloat && rounded % 1 !== 0);
+
+            return (fixFloat) ? rounded.toFixed(this.roundFloat) : rounded;
+        } else {
+            return value;
+        }
+    },
+
+    // escapes the value, uses placeholder when value is null/undefined
+    escapeValue: function (value) {
         // from backbone.js
         var escapeHTML = function(s) {
-            return s.replace(/&(?!\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return s.replace(/&(?!\w+;)/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
         };
-        return escapeHTML(elem + '');
+        if (!value) {
+            return this.placeholder;
+        } else {
+            return escapeHTML(value + '');
+        }
     }
 
 });
