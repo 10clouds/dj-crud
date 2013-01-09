@@ -11,8 +11,12 @@ crud.template = crud.template || function (template_name, static_url) {
             t = t || new EJS({
                 url: crud.template.get_template_url(template_name, static_url)
             });
-
-            var extendedCtx = $.extend(ctx || {}, {crud: crud, '$': jQuery});
+            var libraryCtx = {
+                crud: crud,
+                '$': jQuery,
+                '_': _
+            };
+            var extendedCtx = $.extend(ctx || {}, libraryCtx);
             return t.render(extendedCtx);
         }
     };
