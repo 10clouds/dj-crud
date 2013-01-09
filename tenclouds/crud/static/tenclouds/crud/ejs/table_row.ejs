@@ -1,17 +1,19 @@
 <% for (var i=0; i<meta.fieldsOrder.length; ++i) { %>
-    <% if (meta.fieldsOrder[i] === 'id') { %>
-        <td class="crud-table-item-selector">
-            <input type="checkbox" name="item_<%= model.id %>" <% if (model.get('_selected')) { %>checked<% } %>>
-        </td>
-    <% } else { %>
-        <td>
-            <% if (meta.fieldsURL[meta.fieldsOrder[i]]) { %>
-                <a href="<%= model.get(meta.fieldsURL[meta.fieldsOrder[i]]) %>">
+    <% if (!_.contains(hiddenColumns, meta.fieldsOrder[i])) { %>
+        <% if (meta.fieldsOrder[i] === 'id') { %>
+            <td class="crud-table-item-selector">
+                <input type="checkbox" name="item_<%= model.id %>" <% if (model.get('_selected')) { %>checked<% } %>>
+            </td>
+        <% } else { %>
+            <td>
+                <% if (meta.fieldsURL[meta.fieldsOrder[i]]) { %>
+                    <a href="<%= model.get(meta.fieldsURL[meta.fieldsOrder[i]]) %>">
+                        <%= model.display(meta.fieldsOrder[i]) %>
+                    </a>
+                <% } else { %>
                     <%= model.display(meta.fieldsOrder[i]) %>
-                </a>
-            <% } else { %>
-                <%= model.display(meta.fieldsOrder[i]) %>
-            <% } %>
-        </td>
+                <% } %>
+            </td>
+        <% } %>
     <% } %>
 <% } %>

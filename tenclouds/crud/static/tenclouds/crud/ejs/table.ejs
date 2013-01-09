@@ -8,17 +8,19 @@
     <thead>
         <tr>
         <% for (var i=0; i<meta.fieldsOrder.length; ++i) { %>
-            <% if ($.inArray(meta.fieldsOrder[i], meta.fieldsSortable) > -1) { %>
-                <th class="header crud-sortable-column
-                        <% if (collection.querySort && (collection.querySort[meta.fieldsOrder[i]] === 'up')) { %>headerSortUp<% } %>
-                        <% if (collection.querySort && (collection.querySort[meta.fieldsOrder[i]] === 'down')) { %>headerSortDown<% } %>">
-                    <%= meta.fieldsTitle[meta.fieldsOrder[i]] %>
-                    <input type="hidden" value="<%= meta.fieldsOrder[i] %>">
-                </th>
-            <% } else { %>
-                <th>
-                    <%= meta.fieldsTitle[meta.fieldsOrder[i]] %>
-                </th>
+            <% if (!_.contains(hiddenColumns, meta.fieldsOrder[i])) { %>
+                <% if ($.inArray(meta.fieldsOrder[i], meta.fieldsSortable) > -1) { %>
+                    <th class="header crud-sortable-column
+                            <% if (collection.querySort && (collection.querySort[meta.fieldsOrder[i]] === 'up')) { %>headerSortUp<% } %>
+                            <% if (collection.querySort && (collection.querySort[meta.fieldsOrder[i]] === 'down')) { %>headerSortDown<% } %>">
+                        <%= meta.fieldsTitle[meta.fieldsOrder[i]] %>
+                        <input type="hidden" value="<%= meta.fieldsOrder[i] %>">
+                    </th>
+                <% } else { %>
+                    <th>
+                        <%= meta.fieldsTitle[meta.fieldsOrder[i]] %>
+                    </th>
+                <% } %>
             <% } %>
         <% } %>
         </tr>
