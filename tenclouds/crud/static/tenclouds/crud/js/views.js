@@ -453,7 +453,7 @@ crud.view.Table = crud.view.View.extend({
     render: function (context, renderAll) {
         var ctx = {
             meta: this.options.meta,
-            hiddenColumns: this.hiddenColumns
+            hiddenColumns: (this.hiddenColumns || [])
         };
 
         if (context !== undefined) {
