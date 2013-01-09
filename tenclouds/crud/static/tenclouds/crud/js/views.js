@@ -49,6 +49,7 @@ crud.view.View = Backbone.View.extend({
     customOptions: [],  // opts to be set when given in initialize's options
 
     initialize: function (options) {
+        Backbone.View.prototype.initialize.call(this, options);
         var that = this;
 
         // Scan through customOptions and set ones given in the options
@@ -456,7 +457,8 @@ crud.view.LabelList = crud.view.View.extend({
         'change [type=checkbox]': 'onLabelChange'
     },
 
-    initialize: function () {
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         this.filteredCollection = this.options.filteredCollection;
 
         _.bindAll(this, 'render', 'onLabelChange', 'updateFilter', 'resetBegin', 'resetEnd');
@@ -526,7 +528,8 @@ crud.view.FullTextSearchItem = crud.view.View.extend({
         'keyup input': 'onKeyUp'
     },
 
-    initialize: function () {
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         _.bindAll(this, 'onKeyUp', 'search', 'render');
     },
 
@@ -583,7 +586,8 @@ crud.view.ChoiceFilterItem = crud.view.View.extend({
         'click': 'onFilterChange'
     },
 
-    initialize: function () {
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         this.isActive = false;
 
         _.bindAll(this, 'onFilterChange');
@@ -620,7 +624,8 @@ crud.view.RadioFilterItem = crud.view.View.extend({
         'change': 'onFilterChange'
     },
 
-    initialize: function () {
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         this.isActive = false;
         _.bindAll(this, 'onFilterChange');
     },
@@ -660,9 +665,9 @@ crud.view.RadioFilterItem = crud.view.View.extend({
 
 crud.view.RadioNoFilterItem = crud.view.RadioFilterItem.extend({
 
-    initialize: function () {
-        crud.view.RadioFilterItem.prototype.initialize.call(this);
-        // active bu default
+    initialize: function (options) {
+        crud.view.RadioFilterItem.prototype.initialize.call(this, options);
+        // active by default
         this.isActive = true;
     },
 
@@ -721,7 +726,8 @@ crud.view.FilterGroup = crud.view.View.extend({
 
     bindEvents: {},
 
-    initialize: function () {
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         $(this.el).html(this.template.render({title: this.options.filters.title}));
         var $elem = $(this.el).find(this.appendTo);
 
@@ -790,8 +796,8 @@ crud.view.FilterGroup = crud.view.View.extend({
 //
 crud.view.FilterList = crud.view.View.extend({
 
-    initialize: function () {
-
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         if (!this.options.filterGroupClass)
             this.options.filterGroupClass = crud.view.FilterGroup;
 
