@@ -329,11 +329,13 @@ crud.view.Table = crud.view.View.extend({
         ]
     },
 
-    customOptions: ['hiddenColumns'],
+    customOptions: ['hiddenColumns', 'columnDisplayers'],
 
     events: {
         'click .crud-sortable-column': 'onSortableClick'
     },
+
+    columnDisplayers: {},
 
     initialize: function (options) {
         crud.view.View.prototype.initialize.call(this, options);
@@ -509,8 +511,12 @@ crud.view.Table = crud.view.View.extend({
 
     escapeCell: function (model, columnName) {
         var meta = this.options.meta;
+        if (this.columnDisplayers[columnName]) {
+            displayColumnValue = this.columnDisplayers[columnName]
+        }
         var result = '';
         if (meta.fieldsURL[columnName]) {
+            // url is defined
             result += '<a href="' + model.get(meta.fieldsURL[columnName]) + '">';
             result += model.display(columnName);
             result += '</a>';
