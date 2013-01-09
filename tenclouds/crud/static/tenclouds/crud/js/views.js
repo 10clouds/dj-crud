@@ -115,7 +115,7 @@ crud.view.TableRow = crud.view.View.extend({
         'click [name^=item_]': 'onToggle'
     },
 
-    customOptions: ['hiddenColumns'],
+    customOptions: ['hiddenColumns', 'tableView'],
 
     initialize: function (options) {
         crud.view.View.prototype.initialize.call(this, options);
@@ -131,6 +131,19 @@ crud.view.TableRow = crud.view.View.extend({
         }
         if (this.options) {
             this.options = {};
+        }
+        if (this.tableView) {
+            delete this.tableView;
+        }
+    },
+
+    escapeCell: function (model, columnName) {
+        if (this.tableView) {
+            // delegate work to parent table view
+            return this.tableView.escapeCell(model, columnName);
+        } else {
+            // fallback
+            return model.display(columnName);
         }
     },
 
@@ -368,6 +381,7 @@ crud.view.Table = crud.view.View.extend({
         return new this.itemViewClass({
             meta: this.options.meta,
             hiddenColumns: this.hiddenColumns,
+            tableView: this,
             model: model
         });
     },
@@ -491,6 +505,19 @@ crud.view.Table = crud.view.View.extend({
         }
         this.delegateEvents(this.events);
         return this;
+    },
+
+    escapeCell: function (model, columnName) {
+        var meta = this.options.meta;
+        var result = '';
+        if (meta.fieldsURL[columnName]) {
+            result += '<a href="' + model.get(meta.fieldsURL[columnName]) + '">';
+            result += model.display(columnName);
+            result += '</a>';
+            return result;
+        } else {
+            return model.display(columnName);
+        }
     },
 
     change: function(){}

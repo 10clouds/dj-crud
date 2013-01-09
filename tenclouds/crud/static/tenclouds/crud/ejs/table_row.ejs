@@ -6,13 +6,7 @@
             </td>
         <% } else { %>
             <td>
-                <% if (meta.fieldsURL[meta.fieldsOrder[i]]) { %>
-                    <a href="<%= model.get(meta.fieldsURL[meta.fieldsOrder[i]]) %>">
-                        <%= model.display(meta.fieldsOrder[i]) %>
-                    </a>
-                <% } else { %>
-                    <%= model.display(meta.fieldsOrder[i]) %>
-                <% } %>
+                <%= view.escapeCell(model, meta.fieldsOrder[i]) %>
             </td>
         <% } %>
     <% } %>
