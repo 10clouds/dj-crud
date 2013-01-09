@@ -119,9 +119,19 @@ crud.view.TableRow = crud.view.View.extend({
 
     initialize: function (options) {
         crud.view.View.prototype.initialize.call(this, options);
-        _.bindAll(this, 'render', 'onToggle', 'remove');
+        _.bindAll(this, 'render', 'onToggle', 'remove', 'dispose');
         this.model.bind('change', this.render);
         this.model.bind('remove', this.remove);
+    },
+
+    dispose: function () {
+        if (this.model) {
+            this.model.unbind('change', this.render);
+            this.model.unbind('remove', this.remove);
+        }
+        if (this.options) {
+            this.options = {};
+        }
     },
 
     onToggle: function (e) {
@@ -316,12 +326,14 @@ crud.view.Table = crud.view.View.extend({
         crud.view.View.prototype.initialize.call(this, options);
         this._initialized = false;
         _.bindAll(this, 'addOne', 'newItem', 'addAll', 'onSelected',
-                  'onSelectedAll', 'onSortableClick', 'requestError','change');
+                  'onSelectedAll', 'onSortableClick', 'requestError','change',
+                  'removeAllModelViews');
 
         this.collection.bind('selected', this.onSelected);
         this.collection.bind('add', this.addOne);
         this.collection.bind('reset', this.addAll);
         this.collection.bind('reset:error', this.requestError);
+        this.modelViews = {};
     },
 
     addWidget: function (selector, widget) {
@@ -348,6 +360,7 @@ crud.view.Table = crud.view.View.extend({
     addOne: function (model) {
         var v = this.newItem(model);
         model.view = v;
+        this.modelViews['modelview-' + model.cid] = v;
         this.$('.crud-items').append(v.render().el);
     },
 
@@ -359,7 +372,19 @@ crud.view.Table = crud.view.View.extend({
         });
     },
 
+    removeAllModelViews: function () {
+        _.each(this.modelViews, function (view) {
+            if (view.model && view.model.view && view.model.view === view) {
+                delete view.model.view;
+            }
+            view.remove();
+            view.dispose();
+        });
+        this.modelViews = {};
+    },
+
     addAll: function () {
+        this.removeAllModelViews();
         this.render({}, true);
         this.collection.each(this.addOne);
     },
