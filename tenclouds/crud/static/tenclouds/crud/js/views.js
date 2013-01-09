@@ -44,6 +44,30 @@ crud.crud_template = crud.crud_template || function (template_name) {
     return crud.template(crud.settings.template_path + '/' + template_name + '.ejs');
 };
 
+
+crud.util.isFilterGroupShowable = function (filterGroupInfo, hiddenColumns) {
+    return _.any((filterGroupInfo.filters || []), function (filter) {
+        return crud.util.isFilterShowable(filter, hiddenColumns);
+    });
+};
+
+
+crud.util.isFilterShowable = function (filterInfo, hiddenColumns) {
+    // column generated from filter key
+    var keyColumn = (filterInfo.key || '').split(':')[0];
+    // columnsAffected is now undefined, but in the future the filter can
+    // publish the list of affected columns via tastypie schema. this may be
+    // useful when filter operates on multiple columns, or key prefix does
+    // not match the affected column
+    var affectedColumns = filterInfo.affectedColumns || [keyColumn];
+    if (_.difference(affectedColumns, hiddenColumns).length === 0) {
+        // all affected columns are hidden - we can hide this filter.
+        return false;
+    }
+    return true;
+};
+
+
 crud.view.View = Backbone.View.extend({
 
     customOptions: [],  // opts to be set when given in initialize's options
@@ -726,6 +750,8 @@ crud.view.FilterGroup = crud.view.View.extend({
 
     bindEvents: {},
 
+    customOptions: ['hiddenColumns'],
+
     initialize: function (options) {
         crud.view.View.prototype.initialize.call(this, options);
         $(this.el).html(this.template.render({title: this.options.filters.title}));
@@ -740,6 +766,10 @@ crud.view.FilterGroup = crud.view.View.extend({
 
             // init widget for filter.
             var initWidget = function (filter) {
+                if (!crud.util.isFilterShowable(filter, that.hiddenColumns)) {
+                    return;
+                }
+
                 var widgetCls = that.filterWidgets[filterApi[0]];
                 var widget = new widgetCls({
                     collection: that.options.collection,
@@ -796,6 +826,8 @@ crud.view.FilterGroup = crud.view.View.extend({
 //
 crud.view.FilterList = crud.view.View.extend({
 
+    customOptions: ['hiddenColumns'],
+
     initialize: function (options) {
         crud.view.View.prototype.initialize.call(this, options);
         if (!this.options.filterGroupClass)
@@ -806,14 +838,20 @@ crud.view.FilterList = crud.view.View.extend({
         var that = this;
 
         _.each(this.options.filterGroups, function (filterGroup) {
-            if (_.isArray(groupsAffected) &&
-                    groupsAffected.indexOf(filterGroup.title) === -1)
+            if (!crud.util.isFilterGroupShowable(filterGroup, that.hiddenColumns)) {
                 return;
-            var filterGroupClass = filterGroup.filterGroupClass || that.options.filterGroupClass;
+            }
+            if (_.isArray(groupsAffected) &&
+                    groupsAffected.indexOf(filterGroup.title) === -1) {
+                return;
+            }
+            var filterGroupClass = (filterGroup.filterGroupClass ||
+                    that.options.filterGroupClass);
             var fg = new filterGroupClass({
                 bind: bindEvents,
                 collection: that.options.collection,
                 meta: that.options.meta,
+                hiddenColumns: that.hiddenColumns,
                 filters: filterGroup
             });
             $(that.el).append(fg.render().el);
