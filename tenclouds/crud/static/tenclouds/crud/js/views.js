@@ -90,7 +90,10 @@ crud.view.TableRow = crud.view.View.extend({
         'click [name^=item_]': 'onToggle'
     },
 
-    initialize: function () {
+    customOptions: ['hiddenColumns'],
+
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         _.bindAll(this, 'render', 'onToggle', 'remove');
         this.model.bind('change', this.render);
         this.model.bind('remove', this.remove);
@@ -101,7 +104,10 @@ crud.view.TableRow = crud.view.View.extend({
     },
 
     render: function (context) {
-        var ctx = {meta: this.options.meta};
+        var ctx = {
+            meta: this.options.meta,
+            hiddenColumns: (this.hiddenColumns || [])
+        };
         if (context !== undefined) {
             _.extend(ctx, context);
         }
@@ -275,11 +281,14 @@ crud.view.Table = crud.view.View.extend({
         ]
     },
 
+    customOptions: ['hiddenColumns'],
+
     events: {
         'click .crud-sortable-column': 'onSortableClick'
     },
 
-    initialize: function () {
+    initialize: function (options) {
+        crud.view.View.prototype.initialize.call(this, options);
         this._initialized = false;
         _.bindAll(this, 'addOne', 'newItem', 'addAll', 'onSelected',
                   'onSelectedAll', 'onSortableClick', 'requestError','change');
@@ -320,6 +329,7 @@ crud.view.Table = crud.view.View.extend({
     newItem: function (model) {
         return new this.itemViewClass({
             meta: this.options.meta,
+            hiddenColumns: this.hiddenColumns,
             model: model
         });
     },
@@ -416,7 +426,10 @@ crud.view.Table = crud.view.View.extend({
     },
 
     render: function (context, renderAll) {
-        var ctx = {meta: this.options.meta};
+        var ctx = {
+            meta: this.options.meta,
+            hiddenColumns: this.hiddenColumns
+        };
 
         if (context !== undefined) {
             _.extend(ctx, context);
