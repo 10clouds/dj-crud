@@ -342,7 +342,7 @@ crud.view.Table = crud.view.View.extend({
         this._initialized = false;
         _.bindAll(this, 'addOne', 'newItem', 'addAll', 'onSelected',
                   'onSelectedAll', 'onSortableClick', 'requestError','change',
-                  'removeAllModelViews');
+                  'removeAllModelViews', 'escapeCell');
 
         this.collection.bind('selected', this.onSelected);
         this.collection.bind('add', this.addOne);
@@ -511,17 +511,31 @@ crud.view.Table = crud.view.View.extend({
 
     escapeCell: function (model, columnName) {
         var meta = this.options.meta;
+        var options, value, url, displayColumnValue, result;
         if (this.columnDisplayers[columnName]) {
-            displayColumnValue = this.columnDisplayers[columnName]
+            // using custom column displayer if available
+            displayColumnValue = this.columnDisplayers[columnName];
+            value = model.getComplex(columnName);
+            if (meta.fieldsURL[columnName]) {
+                url = model.get(meta.fieldsURL[columnName]);
+            }
+            options = {
+                model: model,
+                columnName: columnName,
+                url: url,
+                tableView: this
+            };
+            return displayColumnValue.call(this, value, options);
         }
-        var result = '';
         if (meta.fieldsURL[columnName]) {
-            // url is defined
+            // url is defined, so wrap it in <a> tag
+            result = '';
             result += '<a href="' + model.get(meta.fieldsURL[columnName]) + '">';
             result += model.display(columnName);
             result += '</a>';
             return result;
         } else {
+            // delegate do model, for backward compatibility
             return model.display(columnName);
         }
     },
