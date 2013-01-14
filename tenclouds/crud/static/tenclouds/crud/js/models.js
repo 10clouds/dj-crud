@@ -195,7 +195,14 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
     // enable/disable pagination
     paginate: true,
 
-    initialize: function () {
+    // initial filtering params
+    urlParamsMap: {},
+
+    // initial filtering param extractors
+    urlParamsEncoders: {},
+
+    initialize: function (options) {
+        crud.collection.PaginatedCollection.prototype.initialize.call(this, options);
         this.allSelected = false;
         if(!this.queryFilter) {
             this.queryFilter = {filters: []};
@@ -208,6 +215,11 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         this.bind('reset:begin', function () { that.isRefreshing = true; });
         this.bind('reset:end', function () { that.isRefreshing = false; });
         this.isRefreshing = null;
+        for (paramName in this.urlParamsMap) {
+            if (options[paramName]) {
+                this[paramName] = options[paramName];
+            }
+        }
     },
 
     parse: function (resp) {
@@ -358,6 +370,20 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         }
 
         params = $.extend(params, this.queryFilter);
+
+        var urlParamName;
+        var urlParamEncoder;
+        for (paramName in this.urlParamsMap) {
+            if (this[paramName]) {
+                if (this.urlParamsEncoders[paramName]) {
+                    urlParamEncoder = this.urlParamsEncoders[paramName];
+                } else {
+                    urlParamEncoder = encodeURIComponent;
+                }
+                urlParamName = this.urlParamsMap[paramName];
+                params[urlParamName] = urlParamEncoder(this[paramName]);
+            }
+        }
 
         var urlParams = $.param(params, true);
         var url = crud.util.getValue(this.urlRoot);
