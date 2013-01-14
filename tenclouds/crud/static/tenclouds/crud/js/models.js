@@ -21,8 +21,9 @@ crud.model.Model = Backbone.Model.extend({
     initialize: function(options) {
         Backbone.Model.prototype.initialize.call(this, options);
         _.each(["roundFloat", "fixedFloat", "placeholder"], function(name) {
-            if (options.name)
-                this.name = options.name;
+            if (options[name]) {
+                this[name] = options[name];
+            }
         });
         _.bindAll(this, 'url', 'display', 'getComplex', 'formatNumber',
                   'escapeValue');
