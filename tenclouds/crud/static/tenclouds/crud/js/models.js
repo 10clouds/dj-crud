@@ -116,7 +116,8 @@ crud.model.Model = Backbone.Model.extend({
                     .replace(/>/g, '&gt;')
                     .replace(/"/g, '&quot;');
         };
-        if (!value) {
+        if (value == null) {
+            // returns placeholder if value is null or undefined
             return this.placeholder;
         } else {
             return escapeHTML(value + '');
