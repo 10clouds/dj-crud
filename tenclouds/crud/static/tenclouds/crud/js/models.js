@@ -149,6 +149,13 @@ crud.collection.PaginatedCollection = Backbone.Collection.extend({
                 success(that, resp);
             }
         };
+
+        // if collection is empty trigger event 'empty'
+        // we can listen on this event in view, and add messege box with table.showMessage
+        // used in apopolis
+        if (that.length === 0) {
+            this.trigger('empty',true);
+        }
         Backbone.Collection.prototype.fetch.call(this, o);
     },
 

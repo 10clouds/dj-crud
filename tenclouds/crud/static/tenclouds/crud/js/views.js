@@ -342,12 +342,13 @@ crud.view.Table = crud.view.View.extend({
         this._initialized = false;
         _.bindAll(this, 'addOne', 'newItem', 'addAll', 'onSelected',
                   'onSelectedAll', 'onSortableClick', 'requestError','change',
-                  'removeAllModelViews', 'escapeCell');
+                  'removeAllModelViews', 'escapeCell', 'showMessage', 'showMessageEmtpy');
 
         this.collection.bind('selected', this.onSelected);
         this.collection.bind('add', this.addOne);
         this.collection.bind('reset', this.addAll);
         this.collection.bind('reset:error', this.requestError);
+        this.collection.bind('emtpy',this.showMessageEmtpy);
         this.modelViews = {};
     },
 
@@ -450,6 +451,10 @@ crud.view.Table = crud.view.View.extend({
                 delete that._showMessageTimeout;
             }, timeout);
         }
+    },
+
+    showMessageEmtpy: function(){
+        this.showMessage('alert','Collection is empty',3000);
     },
 
     hideMessage: function () {
