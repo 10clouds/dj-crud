@@ -350,6 +350,14 @@ crud.view.Table = crud.view.View.extend({
         this.collection.bind('reset:error', this.requestError);
         this.collection.bind('emtpy',this.showMessageEmtpy);
         this.modelViews = {};
+
+        if (crud.settings.preloader) {
+            this.removeAllModelViews();
+            this.render({}, true);
+            this.showMessage('warning', '<img style="height:17px;" src="' +
+                crud.settings.preloader_img +'"> loading...');
+        }
+
     },
 
     addWidget: function (selector, widget) {
@@ -403,7 +411,12 @@ crud.view.Table = crud.view.View.extend({
     addAll: function () {
         this.removeAllModelViews();
         this.render({}, true);
-        this.collection.each(this.addOne);
+
+        if (this.collection.length === 0) {
+            this.showMessage('warning', '<strong>No data.</strong>');
+        } else {
+            this.collection.each(this.addOne);
+        }
     },
 
     onSortableClick: function (e) {

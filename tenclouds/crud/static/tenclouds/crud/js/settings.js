@@ -28,6 +28,9 @@ crud.settings = {
     *   <static_url>/<template_name>
     *
     */
-    template_path: 'tenclouds/crud/ejs'
+    template_path: 'tenclouds/crud/ejs',
+
+    preloader: false,
+    preloader_img: null
 
 };
