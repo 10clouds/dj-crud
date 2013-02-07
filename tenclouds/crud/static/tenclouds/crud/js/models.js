@@ -380,16 +380,10 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         params = $.extend(params, this.queryFilter);
 
         var urlParamName;
-        var urlParamEncoder;
         for (paramName in this.urlParamsMap) {
             if (this[paramName]) {
-                if (this.urlParamsEncoders[paramName]) {
-                    urlParamEncoder = this.urlParamsEncoders[paramName];
-                } else {
-                    urlParamEncoder = encodeURIComponent;
-                }
                 urlParamName = this.urlParamsMap[paramName];
-                params[urlParamName] = urlParamEncoder(this[paramName]);
+                params[urlParamName] = this[paramName];
             }
         }
 
