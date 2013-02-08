@@ -354,8 +354,10 @@ crud.view.Table = crud.view.View.extend({
         if (crud.settings.preloader) {
             this.removeAllModelViews();
             this.render({}, true);
-            this.showMessage('warning', '<img style="height:17px;" src="' +
-                crud.settings.preloader_img +'"> loading...');
+            this.showMessage(
+                'warning',
+                '<img style="height:17px;" src="' + crud.settings.static_url +
+                    '/' + crud.settings.preloader_img +'"> loading...');
         }
 
     },
