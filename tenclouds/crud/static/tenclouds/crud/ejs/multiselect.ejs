@@ -1,0 +1,8 @@
+<label>
+    <span><%= view.options.filter.name %></span>
+    <select multiple>
+    <% _.each(choices, function(obj) { %>
+        <option value="<%= obj[0] %>"><%= obj[1] %></option>
+    <% }) %>
+    </select>
+</label>
