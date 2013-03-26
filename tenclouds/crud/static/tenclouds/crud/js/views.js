@@ -810,12 +810,59 @@ crud.view.RadioNoFilterItem = crud.view.RadioFilterItem.extend({
 });
 
 
+crud.view.MultiSelectItem = crud.view.View.extend({
+
+    tagName: "li",
+
+    template: crud.crud_template('multiselect'),
+
+    events: {
+        'change': 'onFilterChange'
+    },
+
+    initialize: function(options) {
+        crud.view.View.prototype.initialize.call(this, options);
+        this.choices = options.filter.choices;
+        _.bindAll(this, "onFilterChange");
+        _.bindAll(this, "render");
+    },
+
+
+    onFilterChange: function(e) {
+        var checked_options, filter;
+        var reduce_fun = function(f, key) {
+            return f + ':' + key.value;
+        };
+
+        if (this.last_search) {
+          this.collection.removeFilter(this.last_search);
+        }
+        checked_options = $("option:checked", e.target);
+
+
+        if (checked_options.length > 0) {
+          filter = _.reduce(checked_options, reduce_fun, this.options.filter.key);
+          this.last_search = filter;
+          this.collection.addFilter(filter);
+        }
+        this.collection.fetch();
+    },
+
+    render: function() {
+        crud.view.View.prototype.render.call(this, {
+          choices: this.choices
+        })
+    },
+});
+
+
 // A map of standard CRUD widgets.
 crud.view.standardFilterWidgets = {
     'choice': crud.view.ChoiceFilterItem,
     'text': crud.view.FullTextSearchItem,
     'radio:nofilter': crud.view.RadioNoFilterItem,
-    'radio': crud.view.RadioFilterItem
+    'radio': crud.view.RadioFilterItem,
+    'multiselect': crud.view.MultiSelectItem
 };
 
 

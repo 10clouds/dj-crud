@@ -265,3 +265,43 @@ class AliasFilter(DynamicFilter):
                         return "{0}:{1}".format(name, alias)
 
                 yield F(alias, query=q)
+
+
+class MultiSelectFilter(BaseFilter):
+    field_type = 'multiselect'
+
+    def __init__(self, choices, key, join='and'):
+        self.choices = choices
+        self.key = key
+        self.name = None
+        if join not in ['and', 'or']:
+            raise ValueError('Wrong join parameter %s' % join)
+        self.join = join
+
+    def affected_by(self, key):
+        try:
+            return key.split(':', 1)[0] == self.key
+        except IndexError:
+            return False
+
+    def build_filters(self, raw_key):
+        q = None
+        values = raw_key.split(':')[1:]
+
+        for val in values:
+            if q is None:
+                q = Q(**{self.key: val})
+            else:
+                if self.join == 'or':
+                    q |= Q(**{self.key: val})
+                else:
+                    q &= Q(**{self.key: val})
+        return q
+
+    def to_raw_field(self):
+        return {
+            'key': self.key,
+            'name': self.name,
+            'type': self.field_type,
+            'choices': self.choices,
+        }
