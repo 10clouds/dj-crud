@@ -150,7 +150,7 @@ class ModelResource(resources.ModelResource):
         sorted_objects = self.apply_sorting(objects, options=sorting_params)
 
         paginator = self._meta.paginator_class(request.GET, sorted_objects,
-                                               resource_uri=self.get_resource_list_uri(),
+                                               resource_uri=self.get_resource_uri(),
                                                per_page=self._meta.per_page)
         to_be_serialized = paginator.page()
         to_be_serialized['ordering'] = self.get_ordering_in_api_names(
