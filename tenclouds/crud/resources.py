@@ -144,7 +144,8 @@ class ModelResource(resources.ModelResource):
         """
         # TODO: Uncached for now. Invalidation that works for everyone may be
         #       impossible.
-        objects = self.obj_get_list(request=request, **self.remove_api_resource_names(kwargs))
+        bundle = self.build_bundle(request=request)
+        objects = self.obj_get_list(bundle=bundle, **self.remove_api_resource_names(kwargs))
 
         sorting_params = self.get_ordering(request)
         sorted_objects = self.apply_sorting(objects, options=sorting_params)
