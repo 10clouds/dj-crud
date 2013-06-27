@@ -199,7 +199,6 @@ class ModelResource(resources.ModelResource):
 
         # Check all needed permissions
         self.is_authenticated(request)
-        self.is_authorized(request)
         self.throttle_check(request)
 
         # At last return the method result
