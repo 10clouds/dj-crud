@@ -1,4 +1,3 @@
-import math
 from tastypie import paginator
 from tastypie.exceptions import BadRequest
 
@@ -60,46 +59,13 @@ class Paginator(paginator.Paginator):
             per_page = int(per_page)
         except ValueError:
             raise BadRequest("Invalid per_page '%s' provided. Please provide a"
-                             " positive integer.")
+                             " positive integer." % per_page)
 
         if per_page < 1:
-            raise BadRequest("Invalid per_page '%s' provided. Please provide an"
-                             "integer >= 0.")
+            raise BadRequest("Invalid per_page '%s' provided. Please provide "
+                             "an integer >= 0." % per_page)
 
         return per_page
-
-    def get_page(self, value_name='page', default_min=1,
-            total=None, per_page=None):
-        """Returns sanitized page number based on self.request_data.
-        It is, one of the three: ``default_min``, max available page or the
-        request value under ``value_name``.
-
-        Keyword arguments:
-        value_name -- name of the variable to look for in self.request_data
-        default_min -- page number returned if the page is too small or missing
-        total, per_page -- precomputed results (pass if avaialable)
-
-        """
-        def _clean_page_number(pgno):
-            # too small
-            if pgno < 1:
-                return default_min
-
-            # too big
-            total = self.get_count()
-            per_page = self.get_per_page()
-            max_page = int(math.ceil(float(total) / per_page))
-
-            if pgno > max_page:
-                return max_page if max_page else default_min
-
-            # all fine
-            return pgno
-        try:
-            page_number = int(self.request_data.get(value_name, default_min))
-            return _clean_page_number(page_number)
-        except (TypeError, ValueError):
-            return default_min
 
     def page(self):
         """
@@ -109,16 +75,34 @@ class Paginator(paginator.Paginator):
         the correct set of results and returns all pertinent metadata.
         """
         per_page = self.get_per_page()
-        total = self.get_count()
-        page = self.get_page(total=total, per_page=per_page)
+        if self.request_data.get("endless") == "1":
+            total = None
+        else:
+            total = self.get_count()
 
-        offset = self.offset or per_page * (page - 1)
+        # Compute valid page number.
+        page_number = self.request_data.get("page", 1)
+        try:
+            page_number = int(page_number)
+        except ValueError:
+            raise BadRequest("Invalid page '%s' provided. Please provide an "
+                             "integer." % page_number)
+        else:
+            # Clamp request-specified page number.
+            if page_number < 1:
+                page_number = 1
+            elif total is not None:
+                max_page = total // per_page + bool(total % per_page)
+                if page_number > max_page:
+                    page_number = max_page
+
+        offset = self.offset or per_page * (page_number - 1)
         objects = self.get_slice(per_page, offset)
 
         return {
             'offset': offset,
             'per_page': per_page,
-            'page': page,
+            'page': page_number,
             'total': total,
             'objects': objects,
         }
