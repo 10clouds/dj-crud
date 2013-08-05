@@ -75,10 +75,17 @@ class Paginator(paginator.Paginator):
         the correct set of results and returns all pertinent metadata.
         """
         per_page = self.get_per_page()
-        if self.request_data.get("endless") == "1":
+
+        # Check whether to compute the total number of objects available.
+        endless = self.request_data.get("endless", "0")
+        if endless in ("1", "y", "true"):
             total = None
-        else:
+        elif endless in ("0", "n", "false"):
             total = self.get_count()
+        else:
+            raise BadRequest("Invalid endless flag '%s' provided. Please "
+                             "provide an on of: 0, 1, n, y, false, true."
+                             % endless)
 
         # Compute valid page number.
         page_number = self.request_data.get("page", 1)
