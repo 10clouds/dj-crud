@@ -223,7 +223,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         this.bind('reset:begin', function () { that.isRefreshing = true; });
         this.bind('reset:end', function () { that.isRefreshing = false; });
         this.isRefreshing = null;
-        for (paramName in this.urlParamsMap) {
+        for (var paramName in this.urlParamsMap) {
             if (options[paramName]) {
                 this[paramName] = options[paramName];
             }
@@ -273,11 +273,11 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
 
     selectedQuery: function () {
         var query = {
+            all: this.allSelected,
+            filter: this.queryFilter,
             id__in: [],
-            filter: {}
+            sort: this.querySortAsList(),
         };
-
-        query.filter = this.queryFilter;
 
         if (!this.allSelected) {
             this.each(function (m) {
@@ -286,8 +286,6 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
                 }
             });
         }
-
-        query.sort = this.querySortAsList();
 
         return query;
     },
@@ -380,7 +378,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         params = $.extend(params, this.queryFilter);
 
         var urlParamName;
-        for (paramName in this.urlParamsMap) {
+        for (var paramName in this.urlParamsMap) {
             if (this[paramName]) {
                 urlParamName = this.urlParamsMap[paramName];
                 params[urlParamName] = this[paramName];
