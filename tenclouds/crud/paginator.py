@@ -99,7 +99,8 @@ class Paginator(paginator.Paginator):
             if page_number < 1:
                 page_number = 1
             elif total is not None:
-                max_page = total // per_page + bool(total % per_page)
+                # First page an be empty.
+                max_page = max(1, total // per_page + bool(total % per_page))
                 if page_number > max_page:
                     page_number = max_page
 
