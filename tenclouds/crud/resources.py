@@ -273,3 +273,23 @@ class ModelResource(resources.ModelResource):
         for group in self._meta.filters:
             query = group.apply_filters(request, query, groupfilters)
         return query
+
+    @classmethod
+    def get_fields(cls, fields=None, excludes=None):
+        """ Introspect `title` attribute values from Model fields' verbose_name.
+        """
+        # Call base classes class method.
+        final_fields = resources.ModelResource.get_fields.im_func(cls, fields, excludes)
+
+        if cls._meta.object_class is None:
+            return final_fields
+
+        for field in cls._meta.object_class._meta.fields:
+            our_field = final_fields.get(field.attname, None)
+            if our_field is None:
+                continue
+
+            if our_field.title is None:
+                our_field.title = field.verbose_name
+
+        return final_fields
