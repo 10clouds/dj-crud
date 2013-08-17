@@ -273,3 +273,26 @@ class ModelResource(resources.ModelResource):
         for group in self._meta.filters:
             query = group.apply_filters(request, query, groupfilters)
         return query
+
+    @classmethod
+    def get_fields(cls, fields=None, excludes=None):
+        """ Introspect `title` attribute values from Model fields' verbose_name.
+        """
+        # Call base classes class method.
+        # This class method is being called in a metaclass, thus our ModelResource
+        # might have not yet been inserted into global scope (MetaClass.__new__ didn't return).
+        our_class = next(c for c in cls.__mro__ if c.__module__ == __name__ and c.__name__ == 'ModelResource')
+        final_fields = super(our_class, cls).get_fields(fields, excludes)
+
+        if cls._meta.object_class is None:
+            return final_fields
+
+        for field in cls._meta.object_class._meta.fields:
+            our_field = final_fields.get(field.attname, None)
+            if our_field is None:
+                continue
+
+            if our_field.title is None:
+                our_field.title = field.verbose_name
+
+        return final_fields
