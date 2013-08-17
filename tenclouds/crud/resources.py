@@ -278,8 +278,11 @@ class ModelResource(resources.ModelResource):
     def get_fields(cls, fields=None, excludes=None):
         """ Introspect `title` attribute values from Model fields' verbose_name.
         """
-        # Call base classes class method.
-        final_fields = resources.ModelResource.get_fields.im_func(cls, fields, excludes)
+        # Call base classes class method
+        # This class method is being called in a metaclass, thus our ModelResource
+        # might have not yet been inserted into global scope (MetaClass.__new__ didn't return).
+        our_class = next(c for c in cls.__mro__ if c.__module__ == __name__ and c.__name__ == 'ModelResource')
+        final_fields = super(our_class, cls).get_fields(fields, excludes)
 
         if cls._meta.object_class is None:
             return final_fields
