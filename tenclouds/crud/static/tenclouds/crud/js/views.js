@@ -377,7 +377,7 @@ crud.view.Table = crud.view.View.extend({
     },
 
     requestError: function (err) {
-        // Callback for request error singnals
+        // Callback for request error signals
         //
         // Just show error info for few seconds.
         this.showMessage('error', 'Server response error.', 5000);
@@ -510,7 +510,7 @@ crud.view.Table = crud.view.View.extend({
                     widget = eval(widget);
                 }
 
-                // if widget was alredy initialize, do not try to do this
+                // if widget was already initialized, do not try to do this
                 // again
                 if (widget.constructor === Function) {
                     v = new widget({
