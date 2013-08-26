@@ -26,8 +26,16 @@ class ModelDeclarativeMetaclass(resources.ModelDeclarativeMetaclass):
 
     def __new__(cls, name, bases, attrs):
         new_class = super(ModelDeclarativeMetaclass, cls).__new__(cls, name, bases, attrs)
-        # Don't return the resource_uri in fields order by default.
-        new_class.base_fields['resource_uri'].visible = False
+        resource_uri = new_class.base_fields.get('resource_uri')
+        if resource_uri is not None:
+            # Don't return the resource_uri in fields order by default.
+            resource_uri.visible = False
+
+            # This is pure tastypie field, so add extra CRUD attributes so the
+            # rest of the code works.
+            resource_uri.url = None
+            resource_uri.title = None
+
         if not hasattr(new_class._meta, 'filters'):
             new_class._meta.filters = ()
         if not hasattr(new_class._meta, 'static_data'):

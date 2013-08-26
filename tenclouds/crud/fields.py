@@ -1,76 +1,26 @@
-# Warn if tastypie is already imported. ImportWarning is ignored by default, so
-# use UserWarning (it is important this warning is shown, as importing tastypie
-# may lead to strange and hard to diagnose errors).
-from sys import modules
-from warnings import warn
-for name in list(modules):
-    if name.startswith('tastypie.') or name == 'tastypie':
-        warn(name +
-             ' imported before tenclouds.crud.fields, something may break')
-
-
-# Forward all tastypie fields.
-from tastypie.fields import *
-
 from tastypie import fields
 
 
-# Override the default init - every field needs additional url and title param.
-# These are base classes for many other field types, so subclassing instead of
-# monkey patching would require much more work (and wouldn't handle new field
-# types automatically).
+def create_field_class(name):
+    tastypie_class = getattr(fields, name)
 
-def __apifield__init__(self, attribute=None, default=fields.NOT_PROVIDED,
-                       null=False, blank=False, readonly=False, unique=False,
-                       help_text=None, url=None, title=None):
-    self.instance_name = None
-    self._resource = None
-    self.attribute = attribute
-    self._default = default
-    self.null = null
-    self.blank = blank
-    self.readonly = readonly
-    self.value = None
-    self.unique = unique
-    self.title = title
-    self.url = url
+    def __init__(self, *args, **kwargs):
+        self.title = kwargs.pop('title', None)
+        self.url = kwargs.pop('url', None)
+        tastypie_class.__init__(self, *args, **kwargs)
 
-    if help_text:
-        self.help_text = help_text
-
-fields.ApiField.__init__ = __apifield__init__
+    return type(name, (tastypie_class, ), {'__init__': __init__})
 
 
-def __relatedfield__init__(self, to, attribute, related_name=None,
-                           default=fields.NOT_PROVIDED, null=False,
-                           blank=False, readonly=False, full=False,
-                           unique=False, help_text=None, url=None, title=None):
-
-    fields.ApiField.__init__(self, attribute, default, null, blank, readonly,
-                             unique, help_text, url, title)
-    self.to = to
-    self.related_name = related_name
-    self.full = full
-    self.api_name = None
-    self.unique = unique
-    self._to_class = None
-
-    if self.to == 'self':
-        self.self_referential = True
-        self._to_class = self.__class__
-
-fields.RelatedField.__init__ = __relatedfield__init__
+def declare_field_classes(names):
+    module = globals()
+    for name in names:
+        module[name] = create_field_class(name)
 
 
-def __toone__init__(self, *args, **kwargs):
-    fields.RelatedField.__init__(self, *args, **kwargs)
-    self.fk_resource = None
-
-fields.ToOneField.__init__ = __toone__init__
-
-
-def __tomany__init__(self, *args, **kwargs):
-    fields.RelatedField.__init__(self, *args, **kwargs)
-    self.m2m_bundles = []
-
-fields.ToManyField.__init__ = __tomany__init__
+declare_field_classes(['ApiField', 'BooleanField', 'CharField', 'DateField',
+                       'DateTimeField', 'DecimalField', 'DictField',
+                       'FileField', 'FloatField', 'ForeignKey', 'IntegerField',
+                       'ListField', 'ManyToManyField', 'OneToManyField',
+                       'OneToOneField', 'RelatedField', 'TimeField',
+                       'ToManyField', 'ToOneField'])
