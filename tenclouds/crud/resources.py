@@ -176,9 +176,8 @@ class ModelResource(resources.ModelResource):
         if not action_name or not self.actions.mapping.get(action_name, None):
             raise ImmediateHttpResponse(response=http.HttpNotImplemented())
 
-        # Get only the data that are needed for further processing
-        new_post = QueryDict("")
-        new_post = new_post.copy()
+        # Get only the data that are needed for further processing.
+        new_post = QueryDict("").copy()  # Make mutable QueryDict.
         new_post.update(deserialized.get("query", {}))
         new_post.update({'data': deserialized.get("data", {})})
         request.POST = new_post
@@ -253,25 +252,28 @@ class ModelResource(resources.ModelResource):
             })
         return filters
 
-    def apply_filters(self, request, applicable_filters):
-        query = super(ModelResource, self).apply_filters(request, applicable_filters)
-        return self.result_apply_filters(request, query, request.GET)
+    def build_filters(self, filters=None):
+        """ Create a tuple of ORM and CRUD filters. """
+        orm_filters = super(ModelResource, self).build_filters(filters)
 
-    def result_apply_filters(self, request, query, filters):
-        """For given ``query`` object, apply any number of filters and return
-        new query object.
-        """
-        # apply any filter from "filter_groups" to given query
-        if not isinstance(filters, dict):
-            groupfilter = filters.get('filters', None)
-            groupfilters = (groupfilter,) if groupfilter else ()
+        if filters is not None:
+            # filters can origin either from request.GET (which sadly allows
+            # multiple "filters" parameters) or be a normal, civilized
+            # dictionary.
+            try:
+                crud_filters = filters.getlist('filters')
+            except AttributeError:
+                crud_filters = filters.get('filters', [])
         else:
-            groupfilters = filters.getlist('filters')
+            crud_filters = []
 
-        if not filters:
-            return query
-        for group in self._meta.filters:
-            query = group.apply_filters(request, query, groupfilters)
+        return orm_filters, crud_filters
+
+    def apply_filters(self, request, (orm_filters, crud_filters)):
+        query = super(ModelResource, self).apply_filters(request, orm_filters)
+        if crud_filters:
+            for group in self._meta.filters:
+                query = group.apply_filters(request, query, crud_filters)
         return query
 
     @classmethod

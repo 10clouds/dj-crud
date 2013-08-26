@@ -47,9 +47,6 @@ crud.model.Model = Backbone.Model.extend({
             base = this.urlRoot;
         }
 
-        // Wat. Husio, really?
-        if (base === undefined) { xxx = this; }
-
         var baseVal = crud.util.getValue(base);
 
         if (this.isNew()) {
@@ -213,6 +210,8 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         crud.collection.PaginatedCollection.prototype.initialize.call(this, options);
         this.allSelected = false;
         if(!this.queryFilter) {
+            // TODO: queryFilter seems to consist only of "filters" field,
+            // ever. We probably should flatten it a bit.
             this.queryFilter = {filters: []};
         }
 
@@ -223,7 +222,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         this.bind('reset:begin', function () { that.isRefreshing = true; });
         this.bind('reset:end', function () { that.isRefreshing = false; });
         this.isRefreshing = null;
-        for (paramName in this.urlParamsMap) {
+        for (var paramName in this.urlParamsMap) {
             if (options[paramName]) {
                 this[paramName] = options[paramName];
             }
@@ -273,11 +272,11 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
 
     selectedQuery: function () {
         var query = {
+            all: this.allSelected,
+            filter: this.queryFilter,
             id__in: [],
-            filter: {}
+            sort: this.querySortAsList(),
         };
-
-        query.filter = this.queryFilter;
 
         if (!this.allSelected) {
             this.each(function (m) {
@@ -286,8 +285,6 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
                 }
             });
         }
-
-        query.sort = this.querySortAsList();
 
         return query;
     },
@@ -380,7 +377,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         params = $.extend(params, this.queryFilter);
 
         var urlParamName;
-        for (paramName in this.urlParamsMap) {
+        for (var paramName in this.urlParamsMap) {
             if (this[paramName]) {
                 urlParamName = this.urlParamsMap[paramName];
                 params[urlParamName] = this[paramName];
@@ -437,15 +434,12 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         // that everybody would know about it.
         var success = o.success;
         o.success = function (resp) {
-            if (resp && resp.length > 0) {
+            if (resp.statuskey) {
+                crud.event.Task.trigger('new', resp.statuskey, resp);
+            }
 
-                if (resp.statuskey) {
-                    crud.event.Task.trigger('new', resp.statuskey, resp);
-                }
-
-                if (resp.redirect_url){
-                    window.location = resp.redirect_url;
-                }
+            if (resp.redirect_url) {
+                window.location = resp.redirect_url;
             }
 
             if (success) {
@@ -519,7 +513,7 @@ crud.model.Message = crud.model.Model.extend({
 
     isCompleted: function () {
         // we cannot check state of models with no id anyway
-        return (this.id === undefined);
+        return this.id === undefined || this.progress === 100;
     }
 
 });
@@ -570,13 +564,19 @@ crud.collection.Messages = crud.collection.Collection.extend({
             var success = function (m, resp) {
                 if (that.repeatFetch() && that.checkInterval > 0) {
                     setTimeout(function () {
-                        m.fetch({success: success, error: error});
+                        // Re-check in case user has closed the notification in
+                        // the meantime.
+                        if (that.repeatFetch())
+                            m.fetch({success: success, error: error});
                     }, that.checkInterval);
                 }
             };
             var error = function (m, resp) {
                 setTimeout(function() {
-                    m.fetch({success: success, error: error});
+                    // Re-check in case user has closed the notification in
+                    // the meantime.
+                    if (that.repeatFetch())
+                        m.fetch({success: success, error: error});
                 }, 2000);
             };
 
