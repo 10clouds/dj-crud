@@ -377,7 +377,7 @@ crud.view.Table = crud.view.View.extend({
     },
 
     requestError: function (err) {
-        // Callback for request error singnals
+        // Callback for request error signals
         //
         // Just show error info for few seconds.
         this.showMessage('error', 'Server response error.', 5000);
@@ -427,17 +427,34 @@ crud.view.Table = crud.view.View.extend({
     },
 
     onSelected: function (selectOn) {
-        if (this.collection.total <= this.collection.length) {
-            return false;
-        }
         if (selectOn) {
-            if (this.collection.allSelected) {
-                this.showMessage('warning', '<strong>' + this.collection.total + '</strong> objects selected.');
+            var allStr;
+            var allPromprStr;
+            var total = this.collection.total;
+
+            if (total === null) {
+                allStr = 'All';
+                allPromprStr = '';
             } else {
-                this.showMessage('warning', '<strong>' + this.collection.length + '</strong> objects selected&nbsp;' +
-                    '<a href="#" class="crud-select-all-items ">Select all ' + this.collection.total + '.</a>');
-                this.delegateEvents({'click .crud-select-all-items': 'onSelectedAll'});
+                allStr = total;
+                allPromprStr = ' ' + total;
             }
+
+            if (this.collection.allSelected) {
+                this.showMessage(
+                    'warning',
+                    '<strong>' + allStr + '</strong> objects selected.');
+            } else {
+                this.showMessage(
+                    'warning',
+                    '<strong>' + this.collection.length + '</strong> ' +
+                        'objects selected&nbsp;<a href="#" ' +
+                        'class="crud-select-all-items ">Select all' +
+                        allPromprStr + '.</a>');
+            }
+
+            this.delegateEvents(
+                {'click .crud-select-all-items': 'onSelectedAll'});
         } else {
             this.hideMessage();
         }
@@ -493,7 +510,7 @@ crud.view.Table = crud.view.View.extend({
                     widget = eval(widget);
                 }
 
-                // if widget was alredy initialize, do not try to do this
+                // if widget was already initialized, do not try to do this
                 // again
                 if (widget.constructor === Function) {
                     v = new widget({
@@ -851,7 +868,7 @@ crud.view.MultiSelectItem = crud.view.View.extend({
     render: function() {
         crud.view.View.prototype.render.call(this, {
           choices: this.choices
-        })
+        });
     },
 });
 

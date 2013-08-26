@@ -3,7 +3,7 @@ import json
 
 from django.http import HttpResponse
 
-from tenclouds.crud.http import HttpDone
+from tenclouds.crud.http import HttpDone, HttpJson
 
 
 class ActionResponse(object):
@@ -39,7 +39,7 @@ class ProcessingOffline(ActionResponse):
     def to_response(self):
         # currently only first key return is supported
         if self.status_keys:
-            return {'statuskey': self.status_keys[0]}
+            return HttpJson({'statuskey': self.status_keys[0]})
         return HttpDone()
 
 
@@ -50,7 +50,7 @@ class Redirect(ActionResponse):
     def to_response(self):
         # currently only first key return is supported
         if self.url:
-            return {'redirect_url': self.url}
+            return HttpJson({'redirect_url': self.url})
         return HttpDone()
 
 
@@ -84,22 +84,33 @@ class action_handler(object):
         name = self.name or codename.replace('_', ' ').capitalize()
 
         @functools.wraps(func)
-        def wrapper(handler, request, *args, **kwargs):
+        def wrapper(resource, request, *args, **kwargs):
             res = None
+            args = list(args)
+
+            # TODO: This should solely rely on filters (eg. move id__in to
+            # tastypie filters).
+            if request.POST['all']:
+                filters = resource.build_filters(request.POST['filter'])
+                args.append(resource.apply_filters(request, filters))
+            else:
+                args.append(resource.get_object_list(request).filter(
+                    id__in=request.POST['id__in']))
+
             if self.input_form:
-                data = json.loads(request.raw_post_data).get('data', {})
+                data = request.POST.get('data', {})
                 form = self.input_form(data)
                 if not form.is_valid():
                     res = InvalidFormData(form)
-                args = list(args)
                 args.append(form)
+
             if res is None:
-                res = func(handler, request, *args, **kwargs)
+                res = func(resource, request, *args, **kwargs)
 
             if isinstance(res, ActionResponse):
                 return res.to_response()
             return res
 
         wrapper.action_handler = ActionHandler(self.public, name, codename,
-                self.input_form)
+                                               self.input_form)
         return wrapper
