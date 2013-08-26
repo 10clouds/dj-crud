@@ -3,7 +3,7 @@
 # may lead to strange and hard to diagnose errors).
 from sys import modules
 from warnings import warn
-for name in modules:
+for name in list(modules):
     if name.startswith('tastypie.') or name == 'tastypie':
         warn(name +
              ' imported before tenclouds.crud.fields, something may break')
