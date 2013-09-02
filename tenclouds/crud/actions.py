@@ -95,7 +95,7 @@ class action_handler(object):
                 args.append(resource.apply_filters(request, filters))
             else:
                 args.append(resource.get_object_list(request).filter(
-                    id__in=request.POST['id__in']))
+                    pk__in=request.POST['id__in']))
 
             if self.input_form:
                 data = request.POST.get('data', {})
