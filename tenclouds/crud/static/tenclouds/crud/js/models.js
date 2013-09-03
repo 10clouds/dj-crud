@@ -434,12 +434,14 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         // that everybody would know about it.
         var success = o.success;
         o.success = function (resp) {
-            if (resp.statuskey) {
-                crud.event.Task.trigger('new', resp.statuskey, resp);
-            }
+            if (_.isObject(resp)) {
+                if (resp.statuskey) {
+                    crud.event.Task.trigger('new', resp.statuskey, resp);
+                }
 
-            if (resp.redirect_url) {
-                window.location = resp.redirect_url;
+                if (resp.redirect_url) {
+                    window.location = resp.redirect_url;
+                }
             }
 
             if (success) {
