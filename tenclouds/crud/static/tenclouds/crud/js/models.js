@@ -366,16 +366,25 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         return results;
     },
 
-    url: function () {
-        var params = this.paginate ? {page: this.page, per_page: this.perPage} : {};
+    url: function (forAction) {
+        var params = {};
+        if (!forAction) {
+            // This part is used only when querying a specific page of results.
+            if (this.paginate) {
+                params.page = this.page;
+                params.per_page = this.perPage;
+            }
+            order_by = this.querySortAsList();
+            if (order_by && order_by.length > 0) {
+                params.order_by = order_by;
+            }
 
-        order_by = this.querySortAsList();
-        if (order_by && order_by.length > 0){
-            params.order_by = order_by;
+            // This is passed in POST data when calling an action.
+            params = $.extend(params, this.queryFilter);
         }
 
-        params = $.extend(params, this.queryFilter);
-
+        // Parameters from urlParamsMap are passed in GET for both view queries
+        // and actions.
         var urlParamName;
         for (var paramName in this.urlParamsMap) {
             if (this[paramName]) {
@@ -386,6 +395,10 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
 
         var urlParams = $.param(params, true);
         var url = crud.util.getValue(this.urlRoot);
+
+        if (forAction) {
+            url += '_actions/';
+        }
 
         return (urlParams) ? url + '?' + urlParams : url;
     },
@@ -450,7 +463,7 @@ crud.collection.Collection = crud.collection.PaginatedCollection.extend({
         };
 
         o = _.extend({
-            url: this.url().split('?')[0] + '_actions/',
+            url: this.url(true),
             data: JSON.stringify({
                 action: actionName,
                 query: query,
