@@ -5,7 +5,12 @@ from tastypie import http
 from tastypie import resources
 from tastypie.utils import trailing_slash
 
-from django.conf.urls.defaults import url
+try:
+    from django.conf.urls.defaults import url
+except ImportError:
+    # Django 1.6+
+    from django.conf.urls import url
+
 from django.http import QueryDict
 
 from tenclouds.crud import fields
